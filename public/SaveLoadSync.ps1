@@ -1,5 +1,6 @@
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Public:
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function New-TaskTrackingInitiative {
@@ -7,9 +8,11 @@ Function New-TaskTrackingInitiative {
 	#Requires -Version 3
 	<#
 	.SYNOPSIS
-	Creates the required files to start a MiniTaskMang project at folder path.
+	Creates the required files to start a MiniTaskMang (MTM) project at folder path.
 	.DESCRIPTION
+	Desc
 	.NOTES
+	Notes
 	#>
 	[CmdletBinding(DefaultParameterSetName = "PathName")]
 	Param(
@@ -45,17 +48,15 @@ Function New-TaskTrackingInitiative {
 Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
 #-----------------------------------------------------------------------------------------------------------------------
 
-
-
 #-----------------------------------------------------------------------------------------------------------------------
 Function New-Task {
-	#Requires -Version 3
 	<#
 	.SYNOPSIS
-	Create a new action item.
+	Create a new action item in default MTM project.
 	.DESCRIPTION
 	.NOTES
 	#>
+	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
 		[Parameter(Mandatory = $True, 
@@ -84,11 +85,95 @@ Function New-Task {
 } # End of New-Task function.
 #-----------------------------------------------------------------------------------------------------------------------
 
+#-----------------------------------------------------------------------------------------------------------------------
+Function New-Category {
+	[Alias('New-Context')]
+	#Requires -Version 3
+	<#
+	.SYNOPSIS
+	Add new category/context to MTM project.
+	.DESCRIPTION
+	.NOTES
+	#>
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $True, Position = 0,
+		           ValueFromPipeline = $True, 
+		           ValueFromPipelineByPropertyName = $True,
+		           HelpMessage = "Path to ...")]
+		[ValidateNotNullOrEmpty()]
+		[String]$Path
+		
+	)
+	
+	Return
+} # End of New-Category function.
+Set-Alias -Name 'New-Context' -Value 'New-Category'
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
+Function Get-MyTaskStatus {
+	[Alias('Get-TaskStatus','Get-MyStatus')]
+	#Requires -Version 3
+	<#
+	.SYNOPSIS
+	Get current status of active MTM task.
+	.DESCRIPTION
+	.NOTES
+	#>
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $True, Position = 0,
+		           ValueFromPipeline = $True, 
+		           ValueFromPipelineByPropertyName = $True,
+		           HelpMessage = "Path to ...")]
+		[ValidateNotNullOrEmpty()]
+		[String]$Path
+		
+	)
+	
+	Return
+} # End of Get-MyTaskStatus function.
+Set-Alias -Name 'Get-MyStatus' -Value 'Get-MyTaskStatus'
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
+Function Get-MyTasks {
+	[Alias('Get-Tasks','Get-MyProgress','Get-MyItems','Get-MyProgressItems')]
+	#Requires -Version 3
+	<#
+	.SYNOPSIS
+	Print list of MTM tasks from default project.
+	.DESCRIPTION
+	Desc
+	.NOTES
+	Notes
+	#>
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $True, Position = 0,
+		           ValueFromPipeline = $True, 
+		           ValueFromPipelineByPropertyName = $True,
+		           HelpMessage = "Path to ...")]
+		[ValidateNotNullOrEmpty()]
+		[String]$Path
+		
+	)
+	
+	Return
+} # End of Get-MyTasks function.
+Set-Alias -Name 'Get-Tasks' -Value 'Get-MyTasks'
+Set-Alias -Name 'Get-MyProgress' -Value 'Get-MyTasks'
+Set-Alias -Name 'Get-MyItems' -Value 'Get-MyTasks'
+Set-Alias -Name 'Get-MyProgressItems' -Value 'Get-MyTasks'
+#-----------------------------------------------------------------------------------------------------------------------
+
+
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-Function New-TaskTrackingInitiative {
-	[Alias('New-ProjectInit')]
+Function New-TaskTrackingInitiativeTEST {
+	[Alias('New-ProjectInitTEST')]
 	#Requires -Version 3
 	<#
 	.SYNOPSIS
@@ -108,7 +193,7 @@ Function New-TaskTrackingInitiative {
 	
 	Return
 } # End of New-TaskTrackingInitiative function.
-Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
+Set-Alias -Name 'New-ProjectInitTEST' -Value 'New-TaskTrackingInitiativeTEST'
 #-----------------------------------------------------------------------------------------------------------------------
 
 
