@@ -3,6 +3,34 @@
 # Public:
 
 #-----------------------------------------------------------------------------------------------------------------------
+Function Get-DefaultContexts {
+	<#
+	.SYNOPSIS
+	Returns a list of the default categories/contexts for a new MTM project.
+	.DESCRIPTION
+	.NOTES
+	#>
+	[Alias("Get-DefaultCategories")]
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param()
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$DefaultContexts = @()
+	$DefaultContexts += "Calls"
+	$DefaultContexts += "Emails"
+	$DefaultContexts += "Tickets"
+	$DefaultContexts += "Coding"
+	$DefaultContexts += "Database/Infrastructure"
+	$DefaultContexts += "Remediations"
+	$DefaultContexts += "Administrative"
+	
+	Return $DefaultContexts
+} # End of Get-DefaultContexts function.
+Set-Alias -Name 'Get-DefaultCategories' -Value 'Get-DefaultContexts'
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
 Function New-TaskTrackingInitiative {
 	<#
 	.SYNOPSIS
@@ -24,7 +52,9 @@ Function New-TaskTrackingInitiative {
 	
 	The alias "New-ProjectInit" is used instead of "New-TaskTrackingInitiative".
 	.EXAMPLE
-	New-ProjectInit -FolderPath 
+	New-ProjectInit -FolderPath "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
+	.EXAMPLE
+	New-ProjectInit -FolderPath "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Nested Folder\parent 1\child 2\Test Project"
 	#>
 	#Requires -Version 3
 	[Alias('New-ProjectInit')]
@@ -124,7 +154,8 @@ Function New-TaskTrackingInitiative {
 					Write-Host "Error: Could not create project folder." -BackgroundColor Black -ForegroundColor Red
 					$Error[0]
 					$_.ToString()
-					
+					Write-Error "Could not create project folder."
+					Throw "Could not create project folder."
 				}
 			}
 			1 {
@@ -135,15 +166,77 @@ Function New-TaskTrackingInitiative {
 					Write-Host "Error: Could not create project folder." -BackgroundColor Black -ForegroundColor Red
 					$Error[0]
 					$_.ToString()
-					Write-Error 
+					Write-Error "Could not create project folder."
+					Throw "Could not create project folder."
 				}
 			}
 			Default {Throw 'Horrible error: $FolderExists 2 wrong $Method'}
 		}
-		
 	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Create default categories/contexts list:
+	
+	$ContextsFileName = "Contexts.csv"
+	
+	$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
+	
+	$DefaultContexts = Get-DefaultContexts
+	
+	$DefaultContextsList = @()
+	
+	ForEach ($context in $DefaultContexts) {
+		$Method = 0
+		switch ($Method) {
+			0 {
+				$NewObj = New-Object -TypeName PSCustomObject -Property @{
+					Name = $context
+					Active = "Enabled"
+				}
+			}
+			1 {
+				$NewObj = [PSCustomObject]@{
+					Name = $context
+					Active = "Enabled"
+				}
+			}
+			Default {Throw 'Horrible error: $DefaultContexts ForEach wrong $Method'}
+		}
+		$DefaultContextsList += $NewObj
+	}
+	
+	# Get file extension:
+	$Method = 0
+	switch ($Method) {
+		0 {
+			$FileExtension = [System.IO.Path]::GetExtension($ContextsPath)
+		}
+		1 {
+			$FileExtension = ((Split-Path -Path $ContextsPath -Leaf).Split('.'))[1]
+		}
+		2 {
+			$FileExtension = (Get-ChildItem -Path $ContextsPath).Extension
+		}
+		Default {Throw 'Horrible error: Get file extension wrong $Method'}
+	}
+	
+	# Regex remove any . in $FileExtension
+	$FileExtension = $FileExtension -replace '^\.',''
+	
+	If ($FileExtension -eq "csv") {
+		# https://codeigo.com/powershell/export-to-csv-in-powershell
+		$DefaultContextsList | Export-Csv -Path D:\Scripts\TestObject.csv -NoTypeInformation #-Append
+	} Else {
+		New-Item -Path $ContextsPath -ItemType File
+		
+		Set-Content -Path $ContextsPath -Value $DefaultContextsList
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	
+	
 	
 	
 	
@@ -277,7 +370,6 @@ Set-Alias -Name 'Get-MyProgressItems' -Value 'Get-MyTasks'
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-
 Function New-TaskTrackingInitiativeTEST {
 	<#
 	.SYNOPSIS
@@ -301,6 +393,8 @@ Function New-TaskTrackingInitiativeTEST {
 		[String]$Path
 		
 	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	
 	Return
 } # End of New-TaskTrackingInitiative function.
