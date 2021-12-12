@@ -4,8 +4,6 @@
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function New-TaskTrackingInitiative {
-	[Alias('New-ProjectInit')]
-	#Requires -Version 3
 	<#
 	.SYNOPSIS
 	Creates the required files to start a MiniTaskMang (MTM) project at folder path.
@@ -14,6 +12,8 @@ Function New-TaskTrackingInitiative {
 	.NOTES
 	Notes
 	#>
+	[Alias('New-ProjectInit')]
+	#Requires -Version 3
 	[CmdletBinding(DefaultParameterSetName = "PathName")]
 	Param(
 		[Parameter(Mandatory = $True, Position = 0, 
@@ -52,7 +52,7 @@ Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
 Function New-Task {
 	<#
 	.SYNOPSIS
-	Create a new action item in default MTM project.
+	Create a new action item in default MTM (MiniTaskMang) project.
 	.DESCRIPTION
 	.NOTES
 	#>
@@ -87,14 +87,14 @@ Function New-Task {
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function New-Category {
-	[Alias('New-Context')]
-	#Requires -Version 3
 	<#
 	.SYNOPSIS
-	Add new category/context to MTM project.
+	Add new category/context to MTM (MiniTaskMang) project.
 	.DESCRIPTION
 	.NOTES
 	#>
+	[Alias('New-Context')]
+	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
 		[Parameter(Mandatory = $True, Position = 0,
@@ -113,14 +113,14 @@ Set-Alias -Name 'New-Context' -Value 'New-Category'
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-MyTaskStatus {
-	[Alias('Get-TaskStatus','Get-MyStatus')]
-	#Requires -Version 3
 	<#
 	.SYNOPSIS
-	Get current status of active MTM task.
+	Get current status of active MTM (MiniTaskMang) task.
 	.DESCRIPTION
 	.NOTES
 	#>
+	[Alias('Get-TaskStatus','Get-MyStatus')]
+	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
 		[Parameter(Mandatory = $True, Position = 0,
@@ -135,20 +135,21 @@ Function Get-MyTaskStatus {
 	Return
 } # End of Get-MyTaskStatus function.
 Set-Alias -Name 'Get-MyStatus' -Value 'Get-MyTaskStatus'
+Set-Alias -Name 'Get-TaskStatus' -Value 'Get-MyTaskStatus'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-MyTasks {
-	[Alias('Get-Tasks','Get-MyProgress','Get-MyItems','Get-MyProgressItems')]
-	#Requires -Version 3
 	<#
 	.SYNOPSIS
-	Print list of MTM tasks from default project.
+	Print list of MTM (MiniTaskMang) tasks from default project.
 	.DESCRIPTION
 	Desc
 	.NOTES
 	Notes
 	#>
+	[Alias('Get-Tasks','Get-MyProgress','Get-MyItems','Get-MyProgressItems')]
+	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
 		[Parameter(Mandatory = $True, Position = 0,
@@ -173,13 +174,13 @@ Set-Alias -Name 'Get-MyProgressItems' -Value 'Get-MyTasks'
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function New-TaskTrackingInitiativeTEST {
-	[Alias('New-ProjectInitTEST')]
-	#Requires -Version 3
 	<#
 	.SYNOPSIS
 	.DESCRIPTION
 	.NOTES
 	#>
+	[Alias('New-ProjectInitTEST')]
+	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
 		[Parameter(Mandatory = $True, Position = 0,
