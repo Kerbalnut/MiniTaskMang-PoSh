@@ -1,5 +1,10 @@
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Dependencies:
+
+#https://github.com/RamblingCookieMonster/PSSQLite
+
+#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Public:
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -226,7 +231,7 @@ Function New-TaskTrackingInitiative {
 	
 	If ($FileExtension -eq "csv") {
 		# https://codeigo.com/powershell/export-to-csv-in-powershell
-		$DefaultContextsList | Export-Csv -Path D:\Scripts\TestObject.csv -NoTypeInformation #-Append
+		$DefaultContextsList | Export-Csv -Path $ContextsPath -NoTypeInformation #-Append
 	} Else {
 		New-Item -Path $ContextsPath -ItemType File
 		
@@ -235,12 +240,79 @@ Function New-TaskTrackingInitiative {
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
+	# Create tasks/projects list:
+	
+	$TasksFileName = "TasksList.csv"
+	
+	$TasksListPath = Join-Path -Path $ProjectPath -ChildPath $TasksFileName
+	
+	$NewObj = [PSCustomObject]@{
+		Name = $null
+		Active = $null
+	}
+	
+	$TasksListPath
+	
+	$TaskList [PSCustomObject]@{
+		Index = ''
+		Name = ''
+		ParentProjectID = ''
+		ContextID = ''
+		StatusID = ''
+		CreationDate = ''
+		LastUpdateDate = ''
+		CompletionDate = ''
+		DeletionDate = ''
+	}
+	
+	$Contexts @{
+		Index = ''
+		Name = ''
+		ForeColor = ''
+		BackColor = ''
+		CreationDate = ''
+	}
+	
+	$StatusNames = 
+	'New', 
+	'Active', 
+	'In-progress', 
+	'Paused', 
+	'Complete', 
+	'Deleted', 
+	'On-hold', 
+	'Backburner'
+	
+	$Status @{
+		Index = ''
+		Name = ''
+		ForeColor = ''
+		BackColor = ''
+		CreationDate = ''
+	}
+	
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$Database = "C:\Names.SQLite"
+	Test-Path $Database
+	
+	$Query = "CREATE TABLE NAMES (fullname VARCHAR(100) PRIMARY KEY, surname TEXT, givenname TEXT, birthdate DATETIME)"
+	Invoke-SqliteQuery -Query $Query -Database $Database
+	
+	Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info(NAMES)"
 	
 	
 	
 	
 	
-	Return
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Create a sample/demo task to fill out the brand-new projects list so it doesn't look blank.
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	Return $ContextsPath
 } # End of New-TaskTrackingInitiative function.
 Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
 #-----------------------------------------------------------------------------------------------------------------------
