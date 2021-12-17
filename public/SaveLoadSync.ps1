@@ -20,7 +20,6 @@ Function Get-DefaultContexts {
 	[CmdletBinding()]
 	Param()
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
 	$DefaultContexts = @()
 	$DefaultContexts += "Calls"
 	$DefaultContexts += "Emails"
@@ -29,7 +28,6 @@ Function Get-DefaultContexts {
 	$DefaultContexts += "Database/Infrastructure"
 	$DefaultContexts += "Remediations"
 	$DefaultContexts += "Administrative"
-	
 	Return $DefaultContexts
 } # End of Get-DefaultContexts function.
 Set-Alias -Name 'Get-DefaultCategories' -Value 'Get-DefaultContexts'
@@ -88,12 +86,11 @@ Function New-TaskTrackingInitiative {
 		[Alias('Name')]
 		[String]$ProjectName
 		
+		
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	# If given full project folder name & path parameter together, separate them out.
-	
-	# Check if given folder path exists already or not, and create it if it doesn't.
 	
 	# If source folder given, combine with project name to get full project folder path.
 	If ($SourcePath) {
@@ -122,6 +119,8 @@ Function New-TaskTrackingInitiative {
 	Write-Verbose "`$ProjectPath = `"$ProjectPath`""
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Check if given folder path exists already or not, and create it if it doesn't.
 	
 	# Check if project source folder already exists:
 	$FolderExists = $False
@@ -246,14 +245,19 @@ Function New-TaskTrackingInitiative {
 	
 	$TasksListPath = Join-Path -Path $ProjectPath -ChildPath $TasksFileName
 	
-	$NewObj = [PSCustomObject]@{
-		Name = $null
-		Active = $null
-	}
+	$TaskList = @(
+		[PSCustomObject]@{Index = ''; Type = ''}
+		[PSCustomObject]@{Name = ''; Type = ''}
+		[PSCustomObject]@{ParentProjectID = ''; Type = ''}
+		[PSCustomObject]@{ContextID = ''; Type = ''}
+		[PSCustomObject]@{StatusID = ''; Type = ''}
+		[PSCustomObject]@{CreationDate = ''; Type = ''}
+		[PSCustomObject]@{LastUpdateDate = ''; Type = ''}
+		[PSCustomObject]@{CompletionDate = ''; Type = ''}
+		[PSCustomObject]@{DeletionDate = ''; Type = ''}
+	)
 	
-	$TasksListPath
-	
-	$TaskList [PSCustomObject]@{
+	$TaskList = [PSCustomObject]@{
 		Index = ''
 		Name = ''
 		ParentProjectID = ''
@@ -265,7 +269,7 @@ Function New-TaskTrackingInitiative {
 		DeletionDate = ''
 	}
 	
-	$Contexts @{
+	$Contexts = @{
 		Index = ''
 		Name = ''
 		ForeColor = ''
@@ -273,7 +277,7 @@ Function New-TaskTrackingInitiative {
 		CreationDate = ''
 	}
 	
-	$StatusNames = 
+	$StatusNames = @(
 	'New', 
 	'Active', 
 	'In-progress', 
@@ -281,9 +285,9 @@ Function New-TaskTrackingInitiative {
 	'Complete', 
 	'Deleted', 
 	'On-hold', 
-	'Backburner'
+	'Backburner')
 	
-	$Status @{
+	$Status = @{
 		Index = ''
 		Name = ''
 		ForeColor = ''
@@ -294,11 +298,81 @@ Function New-TaskTrackingInitiative {
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
-	$Database = "C:\Names.SQLite"
-	Test-Path $Database
+	# Make sure PSSQLite module is installed:
+	#https://github.com/RamblingCookieMonster/PSSQLite
+	If (!(Get-Module -ListAvailable -Name "PSSQLite")) {
+		Write-Verbose "PSSQLite module is not installed. Attempting to install:"
+		Try {
+			Import-Module "PSSQLite"
+		} Catch {
+			Write-Verbose "Import-Module failed. Attempting Install-Module:"
+			Install-Module "PSSQLite"
+		}
+		If (!(Get-Module -ListAvailable -Name "PSSQLite")) {
+			Write-Error "PSSQLite could not be installed."
+			Throw "PSSQLite could not be installed."
+		}
+	}
 	
-	$Query = "CREATE TABLE NAMES (fullname VARCHAR(100) PRIMARY KEY, surname TEXT, givenname TEXT, birthdate DATETIME)"
+	# Create a SQLite database and table:
+	
+	$DbFileName = "TasksList.SQLite"
+	
+	$Database = Join-Path -Path $ProjectPath -ChildPath $DbFileName
+	
+	If ((Test-Path $Database)) {
+		If ($Force) {
+			Write-Warning "Database file already exists: `"$Database`""
+		} Else {
+			Write-Error "Database file already exists: `"$Database`""
+			Throw "Database file already exists: `"$Database`""
+		}
+	}
+	
+	
+	$TaskList = @(
+		[PSCustomObject]@{ColumnName = 'Index'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ParentProjectID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'ContextID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'StatusID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastUpdateDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'CompletionDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'DeletionDate'; Type = 'DATETIME'}
+	)
+	
+	Function ConvertTo-NewSQLTableString($InputArray) {
+		<#
+		.NOTES
+		$Query = "CREATE TABLE NAMES (fullname VARCHAR(100) PRIMARY KEY, surname TEXT, givenname TEXT, birthdate DATETIME)"
+		#>
+		$Query = "CREATE TABLE NAMES ("
+		$TotalCount = $InputArray.Count
+		$i = 0
+		ForEach ($column in $InputArray) {
+			$i++
+			If ($i -eq 1) {
+				$Query += "$($column.ColumnName) $($column.Type) PRIMARY KEY, "
+			} ElseIf ($i -eq $TotalCount) {
+				$Query += "$($column.ColumnName) $($column.Type)"
+			} Else {
+				$Query += "$($column.ColumnName) $($column.Type), "
+			}
+		}
+		$Query += ")"
+		Return $Query
+	}
+	
+	$Query = ConvertTo-NewSQLTableString -InputArray $TaskList
 	Invoke-SqliteQuery -Query $Query -Database $Database
+	
+	$Query = ConvertTo-NewSQLTableString -InputArray $TaskList
+	Invoke-SqliteQuery -Query $Query -Database $Database
+	
+	If ((Test-Path $Database)) {
+		Write-Verbose "SQLite database creation success."
+	}
 	
 	Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info(NAMES)"
 	
