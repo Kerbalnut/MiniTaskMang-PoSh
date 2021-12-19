@@ -182,8 +182,9 @@ Function Get-RandomColorPair {
 	
 	$ChosenPairs = @()
 	$AvailableRoundPicks = $ColorPairs
-	$i = 1
+	$i = 0
 	Do {
+		$i++
 		If (($AvailableRoundPicks.Count) -eq 1) {
 			$Pick = 1
 		} Else {
@@ -207,8 +208,6 @@ Function Get-RandomColorPair {
 		} Else {
 			$AvailableRoundPicks = $TempAvailableRoundPicks
 		}
-		
-		$i++
 	} Until ($i -ge $Number)
 	
 	$ChosenPairs = ($ChosenPairs | Select-Object -Property * -ExcludeProperty 'BeenUsed','BrightColor')
@@ -223,13 +222,6 @@ Function Get-RandomColorPair {
 	Return $ChosenPairs
 } # End of Get-RandomColorPair function.
 #-----------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function New-TaskTrackingInitiative {
@@ -283,8 +275,6 @@ Function New-TaskTrackingInitiative {
 				   HelpMessage = "Name for project")]
 		[Alias('Name')]
 		[String]$ProjectName
-		
-		
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
@@ -529,7 +519,7 @@ Function New-TaskTrackingInitiative {
 	}
 	
 	$TaskList = @(
-		[PSCustomObject]@{ColumnName = 'Index'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
 		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'ParentProjectID'; Type = 'INT'}
 		[PSCustomObject]@{ColumnName = 'ContextID'; Type = 'INT'}
@@ -578,7 +568,7 @@ Function New-TaskTrackingInitiative {
 	}
 	
 	$Contexts = @(
-		[PSCustomObject]@{ColumnName = 'Index'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
 		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
@@ -596,7 +586,7 @@ Function New-TaskTrackingInitiative {
 	}
 	
 	$Status = @(
-		[PSCustomObject]@{ColumnName = 'Index'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
 		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
@@ -619,7 +609,7 @@ Function New-TaskTrackingInitiative {
 	
 	# Add default status list to Statuses table:
 	
-	Function ConvertTo-AddNewRowSqlQuery($TableName,$InputArray) {
+	Function ConvertTo-AddNewRowSqlQuery($TableName,$InputArray,$ValuesArray) {
 		<#
 		.LINK
 		https://www.tutorialspoint.com/sqlite/sqlite_insert_query.htm
@@ -645,25 +635,58 @@ Function New-TaskTrackingInitiative {
 		$Query += "VALUES ("
 		
 		$i = 0
-		ForEach ($column in $InputArray) {
+		ForEach ($value in $ValuesArray) {
 			$i++
-			If (($column.ColumnName) -ne 'ID' -And ($column.ColumnName) -ne 'Index') {
+			If (($value.ColumnName) -ne 'ID' -And ($value.ColumnName) -ne 'Index') {
 				If ($i -eq $TotalCount) {
-					$Query += "$($column.ColumnName)"
+					$Query += "$($value.ColumnName)"
 				} Else {
-					$Query += "$($column.ColumnName), "
+					$Query += "$($value.ColumnName), "
 				}
 			}
 		}
 		$Query += ")"
 		
-		$Query += ")"
 		Return $Query
 	} # End of sub-function.
 	
 	
+	
 	$StatusNames = Get-DefaultStatuses
 	
+	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count)
+	
+	
+	
+	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count)
+	
+	$ContextValuesToAdd = @()
+	$CreationDate = Get-Date
+	ForEach ($context in $DefaultContexts) {
+		$ColorPair = $ContextsColors.Pop()
+		$ContextValuesToAdd += [PSCustomObject]@{Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+	}
+	
+	
+	$Contexts = @(
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
+	)
+	
+	
+	
+	$Status = @(
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
+	)
 	
 	
 	
