@@ -34,6 +34,157 @@ Set-Alias -Name 'Get-DefaultCategories' -Value 'Get-DefaultContexts'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
+Function Get-DefaultStatuses {
+	<#
+	.SYNOPSIS
+	Returns a list of the default categories/contexts for a new MTM project.
+	.DESCRIPTION
+	.NOTES
+	#>
+	[Alias("Get-DefaultStatus")]
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param()
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$StatusNames = @()
+	$StatusNames += 'New'
+	$StatusNames += 'Active'
+	$StatusNames += 'In-progress'
+	$StatusNames += 'Paused'
+	$StatusNames += 'Complete'
+	$StatusNames += 'Deleted'
+	$StatusNames += 'On-hold'
+	$StatusNames += 'Backburner'
+	Return $StatusNames
+} # End of Get-DefaultStatuses function.
+Set-Alias -Name 'Get-DefaultStatus' -Value 'Get-DefaultStatuses'
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
+Function Get-AllPowerShellColors {
+	<#
+	.SYNOPSIS
+	Returns a list of the default categories/contexts for a new MTM project.
+	.DESCRIPTION
+	.NOTES
+	.LINK
+	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
+	#>
+	[Alias("Get-AllColors","Get-Colors","Get-ColorsList")]
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param(
+		[Switch]$Grid,
+		[Switch]$Quiet
+	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$Colors = [enum]::GetValues([System.ConsoleColor])
+	If (!($Quiet)) {
+		Foreach ($BgColor in $Colors) {
+			Foreach ($FgColor in $Colors) {
+				Write-Host "$FgColor|" -ForegroundColor $FgColor -BackgroundColor $BgColor -NoNewLine
+			}
+			If (!($Grid)) {Write-Host " on $BgColor"}
+		}
+	}
+	If ($Quiet) {Return $Colors}
+} # End of Get-AllPowerShellColors function.
+Set-Alias -Name 'Get-AllColors' -Value 'Get-AllPowerShellColors'
+Set-Alias -Name 'Get-Colors' -Value 'Get-AllPowerShellColors'
+Set-Alias -Name 'Get-ColorsList' -Value 'Get-AllPowerShellColors'
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
+Function Get-RandomColorPair {
+	<#
+	.SYNOPSIS
+	Returns a list of the default categories/contexts for a new MTM project.
+	.DESCRIPTION
+	.PARAMETER Number
+	Number of color pairs to return. Will attempt to use as few repeating pairs as possible, up to the maximum number of available pairs.
+	.PARAMETER ShowMaxNumber
+	Returns the maximum number of available color pairs.
+	.PARAMETER ShowAllPairs
+	Display all available color pairs.
+	.PARAMETER NoBrightColors
+	Do not use color pairs with bright backgrounds.
+	.NOTES
+	.LINK
+	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
+	#>
+	#Requires -Version 3
+	[CmdletBinding(DefaultParameterSetName = "GetNumberOfPairs")]
+	Param(
+		[Parameter(Position = 0, ParameterSetName = "GetNumberOfPairs")]
+		[Alias('Count','n')]
+		[Int]$Number,
+		
+		[Parameter(ParameterSetName = "ShowMaxNumber")]
+		[Switch]$ShowMaxNumber,
+		
+		[Parameter(ParameterSetName = "ShowAllPairs")]
+		[Switch]$ShowAllPairs,
+		
+		[Switch]$NoBrightColors
+	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$ColorPairs = @(
+		[PSCustomObject]@{ForeColor = 'Green'; BackColor = 'Black'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Cyan'; BackColor = 'DarkBlue'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'DarkGreen'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'White'; BackColor = 'DarkCyan'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Magenta'; BackColor = 'DarkRed'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'White'; BackColor = 'DarkMagenta'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'DarkYellow'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'DarkRed'; BackColor = 'Gray'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'DarkBlue'; BackColor = 'DarkGray'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'Blue'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Blue'; BackColor = 'Green'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'DarkBlue'; BackColor = 'Cyan'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'Red'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'Magenta'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Blue'; BackColor = 'Yellow'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'White'; BrightColor = $False}
+	)
+	
+	If ($NoBrightColors) {
+		$TempColorPairs = @()
+		ForEach ($color in $ColorPairs) {
+			If (($color.BrightColor) -eq $False) {
+				$TempColorPairs += $color
+			}
+		}
+		$ColorPairs = $TempColorPairs
+		Remove-Variable -Name 'TempColorPairs'
+	}
+	
+	If ($ShowMaxNumber) {
+		Return ($ColorPairs.Count)
+	}
+	
+	If ($ShowAllPairs) {
+		ForEach ($color in $ColorPairs) {
+			Write-Host "$($color.ForeColor) on $($color.BackColor)" -ForegroundColor ($color.ForeColor) -BackgroundColor ($color.BackColor) -NoNewline
+			Write-Host " - $($color.ForeColor) on $($color.BackColor)"
+		}
+		Return
+	}
+	
+	
+	Get-Random -Minimum 1 -Maximum ($ColorPairs.Count)
+	
+} # End of Get-RandomColorPair function.
+#-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
 Function New-TaskTrackingInitiative {
 	<#
 	.SYNOPSIS
@@ -228,6 +379,7 @@ Function New-TaskTrackingInitiative {
 	# Regex remove any . in $FileExtension
 	$FileExtension = $FileExtension -replace '^\.',''
 	
+	# Create Contexts file with default contexts
 	If ($FileExtension -eq "csv") {
 		# https://codeigo.com/powershell/export-to-csv-in-powershell
 		$DefaultContextsList | Export-Csv -Path $ContextsPath -NoTypeInformation #-Append
@@ -329,7 +481,6 @@ Function New-TaskTrackingInitiative {
 		}
 	}
 	
-	
 	$TaskList = @(
 		[PSCustomObject]@{ColumnName = 'Index'; Type = 'INTEGER'}
 		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
@@ -342,18 +493,20 @@ Function New-TaskTrackingInitiative {
 		[PSCustomObject]@{ColumnName = 'DeletionDate'; Type = 'DATETIME'}
 	)
 	
-	Function ConvertTo-NewSQLTableString($InputArray) {
+	Function ConvertTo-NewSQLTableString($TableName,$InputArray) {
 		<#
 		.NOTES
 		$Query = "CREATE TABLE NAMES (fullname VARCHAR(100) PRIMARY KEY, surname TEXT, givenname TEXT, birthdate DATETIME)"
+		.LINK
+		https://www.tutorialspoint.com/sqlite/sqlite_using_autoincrement.htm
 		#>
-		$Query = "CREATE TABLE NAMES ("
+		$Query = "CREATE TABLE $TableName ("
 		$TotalCount = $InputArray.Count
 		$i = 0
 		ForEach ($column in $InputArray) {
 			$i++
 			If ($i -eq 1) {
-				$Query += "$($column.ColumnName) $($column.Type) PRIMARY KEY, "
+				$Query += "$($column.ColumnName) $($column.Type) PRIMARY KEY AUTOINCREMENT, "
 			} ElseIf ($i -eq $TotalCount) {
 				$Query += "$($column.ColumnName) $($column.Type)"
 			} Else {
@@ -362,20 +515,107 @@ Function New-TaskTrackingInitiative {
 		}
 		$Query += ")"
 		Return $Query
-	}
+	} # End of sub-function.
 	
-	$Query = ConvertTo-NewSQLTableString -InputArray $TaskList
-	Invoke-SqliteQuery -Query $Query -Database $Database
+	$TasksTableName = "Tasks"
 	
-	$Query = ConvertTo-NewSQLTableString -InputArray $TaskList
+	$Query = ConvertTo-NewSQLTableString -TableName $TasksTableName -InputArray $TaskList
 	Invoke-SqliteQuery -Query $Query -Database $Database
 	
 	If ((Test-Path $Database)) {
 		Write-Verbose "SQLite database creation success."
 	}
 	
-	Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info(NAMES)"
+	If ($VerbosePreference -ne 'SilentlyContinue') {
+		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($TasksTableName)"
+	}
 	
+	$Contexts = @(
+		[PSCustomObject]@{ColumnName = 'Index'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
+	)
+	
+	$ContextsTableName = "Contexts"
+	
+	$Query = ConvertTo-NewSQLTableString -TableName $ContextsTableName -InputArray $Contexts
+	Invoke-SqliteQuery -Query $Query -Database $Database
+	
+	If ($VerbosePreference -ne 'SilentlyContinue') {
+		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($ContextsTableName)"
+	}
+	
+	$Status = @(
+		[PSCustomObject]@{ColumnName = 'Index'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
+	)
+	
+	$StatusTableName = "Status"
+	
+	$Query = ConvertTo-NewSQLTableString -TableName $StatusTableName -InputArray $Status
+	Invoke-SqliteQuery -Query $Query -Database $Database
+	
+	Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($StatusTableName)"
+	
+	If ($VerbosePreference -ne 'SilentlyContinue') {
+		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($ContextsTableName)"
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Add default status list to Statuses table:
+	
+	Function ConvertTo-AddNewRowSqlQuery($TableName,$InputArray) {
+		<#
+		.LINK
+		https://www.tutorialspoint.com/sqlite/sqlite_insert_query.htm
+		.NOTES
+		INSERT INTO TABLE_NAME [(column1, column2, column3,...columnN)]  
+		VALUES (value1, value2, value3,...valueN);
+		#>
+		$Query = "INSERT INTO $TableName ("
+		$TotalCount = $InputArray.Count
+		$i = 0
+		ForEach ($column in $InputArray) {
+			$i++
+			If (($column.ColumnName) -ne 'ID' -And ($column.ColumnName) -ne 'Index') {
+				If ($i -eq $TotalCount) {
+					$Query += "$($column.ColumnName)"
+				} Else {
+					$Query += "$($column.ColumnName), "
+				}
+			}
+		}
+		$Query += ")"
+		$Query += "`n"
+		$Query += "VALUES ("
+		
+		$i = 0
+		ForEach ($column in $InputArray) {
+			$i++
+			If (($column.ColumnName) -ne 'ID' -And ($column.ColumnName) -ne 'Index') {
+				If ($i -eq $TotalCount) {
+					$Query += "$($column.ColumnName)"
+				} Else {
+					$Query += "$($column.ColumnName), "
+				}
+			}
+		}
+		$Query += ")"
+		
+		$Query += ")"
+		Return $Query
+	} # End of sub-function.
+	
+	
+	$StatusNames = Get-DefaultStatuses
 	
 	
 	
