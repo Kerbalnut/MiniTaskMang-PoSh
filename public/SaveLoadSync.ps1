@@ -108,6 +108,8 @@ Function Get-RandomColorPair {
 	Display all available color pairs.
 	.PARAMETER NoBrightColors
 	Do not use color pairs with bright backgrounds.
+	.PARAMETER ShowResults
+	Display the randomly-chosen color pairs along with results.
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
@@ -118,6 +120,9 @@ Function Get-RandomColorPair {
 		[Parameter(Position = 0, ParameterSetName = "GetNumberOfPairs")]
 		[Alias('Count','n')]
 		[Int]$Number,
+		
+		[Parameter(ParameterSetName = "GetNumberOfPairs")]
+		[Switch]$ShowResults,
 		
 		[Parameter(ParameterSetName = "ShowMaxNumber")]
 		[Switch]$ShowMaxNumber,
@@ -130,23 +135,25 @@ Function Get-RandomColorPair {
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	$ColorPairs = @(
-		[PSCustomObject]@{ForeColor = 'Green'; BackColor = 'Black'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Cyan'; BackColor = 'DarkBlue'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'DarkGreen'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'White'; BackColor = 'DarkCyan'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Magenta'; BackColor = 'DarkRed'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'White'; BackColor = 'DarkMagenta'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'DarkYellow'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'DarkRed'; BackColor = 'Gray'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'DarkBlue'; BackColor = 'DarkGray'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'Blue'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Blue'; BackColor = 'Green'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'DarkBlue'; BackColor = 'Cyan'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'Red'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'Magenta'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Blue'; BackColor = 'Yellow'; BrightColor = $False}
-		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'White'; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Green'; BackColor = 'Black'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Cyan'; BackColor = 'DarkBlue'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'DarkGreen'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'White'; BackColor = 'DarkCyan'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Magenta'; BackColor = 'DarkRed'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'White'; BackColor = 'DarkMagenta'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'DarkYellow'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'DarkRed'; BackColor = 'Gray'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'DarkBlue'; BackColor = 'DarkGray'; BeenUsed = $False; BrightColor = $False}
+		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'Blue'; BeenUsed = $False; BrightColor = $True}
+		[PSCustomObject]@{ForeColor = 'Blue'; BackColor = 'Green'; BeenUsed = $False; BrightColor = $True}
+		[PSCustomObject]@{ForeColor = 'DarkBlue'; BackColor = 'Cyan'; BeenUsed = $False; BrightColor = $True}
+		[PSCustomObject]@{ForeColor = 'Yellow'; BackColor = 'Red'; BeenUsed = $False; BrightColor = $True}
+		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'Magenta'; BeenUsed = $False; BrightColor = $True}
+		[PSCustomObject]@{ForeColor = 'Blue'; BackColor = 'Yellow'; BeenUsed = $False; BrightColor = $True}
+		[PSCustomObject]@{ForeColor = 'Black'; BackColor = 'White'; BeenUsed = $False; BrightColor = $True}
 	)
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	If ($NoBrightColors) {
 		$TempColorPairs = @()
@@ -171,9 +178,49 @@ Function Get-RandomColorPair {
 		Return
 	}
 	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
-	Get-Random -Minimum 1 -Maximum ($ColorPairs.Count)
+	$ChosenPairs = @()
+	$AvailableRoundPicks = $ColorPairs
+	$i = 1
+	Do {
+		If (($AvailableRoundPicks.Count) -eq 1) {
+			$Pick = 1
+		} Else {
+			$Pick = Get-Random -Minimum 1 -Maximum ($AvailableRoundPicks.Count)
+		}
+		
+		Write-Verbose "Randomly picked $Pick out of $($AvailableRoundPicks.Count)."
+		
+		$TempAvailableRoundPicks = @()
+		$j = 0
+		ForEach ($color in $AvailableRoundPicks) {
+			$j++
+			If ($j -eq $Pick) {
+				$ChosenPairs += $color
+			} Else {
+				$TempAvailableRoundPicks += $color
+			}
+		}
+		If (($AvailableRoundPicks.Count) -eq 1) {
+			$AvailableRoundPicks = $ColorPairs
+		} Else {
+			$AvailableRoundPicks = $TempAvailableRoundPicks
+		}
+		
+		$i++
+	} Until ($i -ge $Number)
 	
+	$ChosenPairs = ($ChosenPairs | Select-Object -Property * -ExcludeProperty 'BeenUsed','BrightColor')
+	
+	If ($ShowResults) {
+		ForEach ($color in $ChosenPairs) {
+			Write-Host "$($color.ForeColor) on $($color.BackColor)" -ForegroundColor ($color.ForeColor) -BackgroundColor ($color.BackColor) -NoNewline
+			Write-Host " - $($color.ForeColor) on $($color.BackColor)"
+		}
+	}
+	
+	Return $ChosenPairs
 } # End of Get-RandomColorPair function.
 #-----------------------------------------------------------------------------------------------------------------------
 
