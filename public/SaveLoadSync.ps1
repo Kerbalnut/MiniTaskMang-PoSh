@@ -619,6 +619,7 @@ Function New-TaskTrackingInitiative {
 	
 	# Add default status list to Statuses table:
 	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Function ConvertTo-AddNewRowSqlQuery($TableName,$InputArray) {
 		<#
 		.LINK
@@ -652,8 +653,7 @@ Function New-TaskTrackingInitiative {
 		
 		Return $Query
 	} # End of sub-function.
-	
-	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	$StatusNames = Get-DefaultStatuses @CommonParameters
 	
@@ -677,15 +677,6 @@ Function New-TaskTrackingInitiative {
 		$ContextValuesToAdd += [PSCustomObject]@{Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
 	}
 	
-	# Add data to table:
-	$StatusValuesToAdd | Format-Table
-	
-	$StatusValue = $StatusValuesToAdd | Select-Object -First 1
-	
-	$StatusValue | Get-Member
-	
-	$StatusValue.PsObject.Properties
-	
 	# Convert value arrays to SQL queries:
 	Write-Verbose "Converting default Status array values to SQL queries"
 	$StatusQueriesToAdd = @()
@@ -693,61 +684,24 @@ Function New-TaskTrackingInitiative {
 		$StatusQueriesToAdd += ConvertTo-AddNewRowSqlQuery -TableName $StatusTableName -InputArray $StatusValue
 		#$StatusQueriesToAdd += (ConvertTo-AddNewRowSqlQuery -TableName $StatusTableName -InputArray $StatusValue) + "`n"
 	}
-	$StatusQueriesToAdd
-	$StatusQueriesToAdd.GetType()
-	$StatusQueriesToAdd | Select-Object -First 1
 	
-	$StatusQueriesToAdd = @()
-	ForEach ($StatusValue in $StatusValuesToAdd) {
-		$StatusValue
-		ForEach ($property in ($StatusValue.PsObject.Properties)) {
-			$property.Name
-			$property.Value
-		}
-		$StatusQueriesToAdd += ConvertTo-AddNewRowSqlQuery -TableName $StatusTableName -InputArray $Status -ValuesArray $StatusValue
+	Write-Verbose "Converting default Context array values to SQL queries"
+	$ContextQueriesToAdd = @()
+	ForEach ($ContextValue in $ContextValuesToAdd) {
+		$ContextQueriesToAdd += ConvertTo-AddNewRowSqlQuery -TableName $ContextsTableName -InputArray $ContextValue
+		#$ContextQueriesToAdd += (ConvertTo-AddNewRowSqlQuery -TableName $ContextsTableName -InputArray $ContextValue) + "`n"
 	}
 	
-	$StatusQueriesToAdd = @()
-	ForEach ($StatusValue in $StatusValuesToAdd.GetEnumerator()) {
-		$StatusValue.KEY
-		$StatusValue.Value
+	# Run SQL queries to add default values:
+	Write-Verbose "Running queries to add default Status values to table."
+	ForEach ($Query in $StatusQueriesToAdd) {
+		Invoke-SqliteQuery -Query $Query -Database $Database
 	}
 	
-	ConvertTo-AddNewRowSqlQuery -TableName $ContextsTableName -InputArray $Contexts -ValuesArray $ContextValuesToAdd
-	
-	
-	
-	$Contexts = @(
-		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
-		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
-	)
-	
-	
-	
-	$Status = @(
-		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
-		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
-	)
-	
-	
-	$array = Get-Random -Count 10 -in(1..100)
-	
-	for($i=0;$i-le $array.length-1;$i++)
-	{"`$array[{0}] = {1}" -f $i,$array[$i]}
-	
-	For ($i=1; $i -le $array.length; $i++)
-	{"`$array[{0}] = {1}" -f $i,$array[($i-1)]}
-	
-	
-	
+	Write-Verbose "Running queries to add default Context values to table."
+	ForEach ($Query in $ContextQueriesToAdd) {
+		Invoke-SqliteQuery -Query $Query -Database $Database
+	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
