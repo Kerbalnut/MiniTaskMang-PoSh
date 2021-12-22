@@ -277,6 +277,11 @@ Function New-TaskTrackingInitiative {
 		[String]$ProjectName
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$CommonParameters = @{
+		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
+		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	# If given full project folder name & path parameter together, separate them out.
 	
@@ -374,7 +379,7 @@ Function New-TaskTrackingInitiative {
 	
 	$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
 	
-	$DefaultContexts = Get-DefaultContexts
+	$DefaultContexts = Get-DefaultContexts @CommonParameters
 	
 	$DefaultContextsList = @()
 	
@@ -509,6 +514,7 @@ Function New-TaskTrackingInitiative {
 	
 	$Database = Join-Path -Path $ProjectPath -ChildPath $DbFileName
 	
+	Write-Verbose "Checking if DB file already exists: $Database"
 	If ((Test-Path $Database)) {
 		If ($Force) {
 			Write-Warning "Database file already exists: `"$Database`""
@@ -556,6 +562,7 @@ Function New-TaskTrackingInitiative {
 	
 	$TasksTableName = "Tasks"
 	
+	Write-Verbose "Attempting to create $TasksTableName table in $($DbFileName):"
 	$Query = ConvertTo-NewSQLTableString -TableName $TasksTableName -InputArray $TaskList
 	Invoke-SqliteQuery -Query $Query -Database $Database
 	
@@ -563,6 +570,7 @@ Function New-TaskTrackingInitiative {
 		Write-Verbose "SQLite database creation success."
 	}
 	
+	Write-Verbose "Showing column info for $TasksTableName table:"
 	If ($VerbosePreference -ne 'SilentlyContinue') {
 		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($TasksTableName)"
 	}
@@ -578,9 +586,11 @@ Function New-TaskTrackingInitiative {
 	
 	$ContextsTableName = "Contexts"
 	
+	Write-Verbose "Attempting to create $ContextsTableName table in $($DbFileName):"
 	$Query = ConvertTo-NewSQLTableString -TableName $ContextsTableName -InputArray $Contexts
 	Invoke-SqliteQuery -Query $Query -Database $Database
 	
+	Write-Verbose "Showing column info for $ContextsTableName table:"
 	If ($VerbosePreference -ne 'SilentlyContinue') {
 		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($ContextsTableName)"
 	}
@@ -596,13 +606,13 @@ Function New-TaskTrackingInitiative {
 	
 	$StatusTableName = "Status"
 	
+	Write-Verbose "Attempting to create $StatusTableName table in $($DbFileName):"
 	$Query = ConvertTo-NewSQLTableString -TableName $StatusTableName -InputArray $Status
 	Invoke-SqliteQuery -Query $Query -Database $Database
 	
-	Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($StatusTableName)"
-	
+	Write-Verbose "Showing column info for $StatusTableName table:"
 	If ($VerbosePreference -ne 'SilentlyContinue') {
-		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($ContextsTableName)"
+		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($StatusTableName)"
 	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -645,27 +655,59 @@ Function New-TaskTrackingInitiative {
 				}
 			}
 		}
-		$Query += ")"
+		$Query += ") ;`n"
 		
 		Return $Query
 	} # End of sub-function.
 	
 	
 	
-	$StatusNames = Get-DefaultStatuses
+	$StatusNames = Get-DefaultStatuses @CommonParameters
 	
-	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count)
+	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count) @CommonParameters
 	
+	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count) @CommonParameters
 	
-	
-	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count)
+	$CreationDate = Get-Date
+	$StatusValuesToAdd = @()
+	ForEach ($status in $StatusNames) {
+		$ColorPair = $StatusColors.Pop()
+		$StatusValuesToAdd += [PSCustomObject]@{Name = $status; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+	}
 	
 	$ContextValuesToAdd = @()
-	$CreationDate = Get-Date
 	ForEach ($context in $DefaultContexts) {
 		$ColorPair = $ContextsColors.Pop()
 		$ContextValuesToAdd += [PSCustomObject]@{Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
 	}
+	
+	# Add data to table:
+	$StatusValuesToAdd | Format-Table
+	
+	$StatusValue = $StatusValuesToAdd | Select-Object -First 1
+	
+	$StatusValue | Get-Member
+	
+	$StatusValue.PsObject.Properties
+	
+	$StatusQueriesToAdd = @()
+	ForEach ($StatusValue in $StatusValuesToAdd) {
+		$StatusValue
+		ForEach ($property in ($StatusValue.PsObject.Properties)) {
+			$property.Name
+			$property.Value
+		}
+		$StatusQueriesToAdd += ConvertTo-AddNewRowSqlQuery -TableName $StatusTableName -InputArray $Status -ValuesArray $StatusValue
+	}
+	
+	$StatusQueriesToAdd = @()
+	ForEach ($StatusValue in $StatusValuesToAdd.GetEnumerator()) {
+		$StatusValue.KEY
+		$StatusValue.Value
+	}
+	
+	ConvertTo-AddNewRowSqlQuery -TableName $ContextsTableName -InputArray $Contexts -ValuesArray $ContextValuesToAdd
+	
 	
 	
 	$Contexts = @(
@@ -687,6 +729,16 @@ Function New-TaskTrackingInitiative {
 		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
 		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
 	)
+	
+	
+	$array = Get-Random -Count 10 -in(1..100)
+	
+	for($i=0;$i-le $array.length-1;$i++)
+	{"`$array[{0}] = {1}" -f $i,$array[$i]}
+	
+	For ($i=1; $i -le $array.length; $i++)
+	{"`$array[{0}] = {1}" -f $i,$array[($i-1)]}
+	
 	
 	
 	
