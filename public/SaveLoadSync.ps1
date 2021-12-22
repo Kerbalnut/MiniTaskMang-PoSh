@@ -619,7 +619,7 @@ Function New-TaskTrackingInitiative {
 	
 	# Add default status list to Statuses table:
 	
-	Function ConvertTo-AddNewRowSqlQuery($TableName,$InputArray,$ValuesArray) {
+	Function ConvertTo-AddNewRowSqlQuery($TableName,$InputArray) {
 		<#
 		.LINK
 		https://www.tutorialspoint.com/sqlite/sqlite_insert_query.htm
@@ -627,35 +627,28 @@ Function New-TaskTrackingInitiative {
 		INSERT INTO TABLE_NAME [(column1, column2, column3,...columnN)]  
 		VALUES (value1, value2, value3,...valueN);
 		#>
-		$Query = "INSERT INTO $TableName ("
+		$ColumnNames = ""
+		$ColumnValues = ""
 		$TotalCount = $InputArray.Count
 		$i = 0
-		ForEach ($column in $InputArray) {
+		ForEach ($KeyValuePair in $InputArray) {
 			$i++
-			If (($column.ColumnName) -ne 'ID' -And ($column.ColumnName) -ne 'Index') {
-				If ($i -eq $TotalCount) {
-					$Query += "$($column.ColumnName)"
-				} Else {
-					$Query += "$($column.ColumnName), "
-				}
-			}
-		}
-		$Query += ")"
-		$Query += "`n"
-		$Query += "VALUES ("
+			ForEach ($property in ($KeyValuePair.PsObject.Properties)) {
+				If (($property.Name) -ne 'ID' -And ($property.Name) -ne 'Index') {
+					If ($i -eq $TotalCount) {
+						$ColumnNames += "$($property.Name)"
+						$ColumnValues += "$($property.Value)"
+					} Else {
+						$ColumnNames += "$($property.Name), "
+						$ColumnValues += "$($property.Value), "
+					} # If last item
+				} # If not ID or Index
+			} # ForEach Property
+		} # ForEach Pair
 		
-		$i = 0
-		ForEach ($value in $ValuesArray) {
-			$i++
-			If (($value.ColumnName) -ne 'ID' -And ($value.ColumnName) -ne 'Index') {
-				If ($i -eq $TotalCount) {
-					$Query += "$($value.ColumnName)"
-				} Else {
-					$Query += "$($value.ColumnName), "
-				}
-			}
-		}
-		$Query += ") ;`n"
+		# Construct query string:
+		$Query = "INSERT INTO $TableName ($ColumnNames)`n"
+		$Query += "VALUES ($ColumnValues);"
 		
 		Return $Query
 	} # End of sub-function.
@@ -668,6 +661,8 @@ Function New-TaskTrackingInitiative {
 	
 	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count) @CommonParameters
 	
+	# Build default values array
+	Write-Verbose "Building default Status values array"
 	$CreationDate = Get-Date
 	$StatusValuesToAdd = @()
 	ForEach ($status in $StatusNames) {
@@ -675,6 +670,7 @@ Function New-TaskTrackingInitiative {
 		$StatusValuesToAdd += [PSCustomObject]@{Name = $status; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
 	}
 	
+	Write-Verbose "Building default Context values array"
 	$ContextValuesToAdd = @()
 	ForEach ($context in $DefaultContexts) {
 		$ColorPair = $ContextsColors.Pop()
@@ -689,6 +685,17 @@ Function New-TaskTrackingInitiative {
 	$StatusValue | Get-Member
 	
 	$StatusValue.PsObject.Properties
+	
+	# Convert value arrays to SQL queries:
+	Write-Verbose "Converting default Status array values to SQL queries"
+	$StatusQueriesToAdd = @()
+	ForEach ($StatusValue in $StatusValuesToAdd) {
+		$StatusQueriesToAdd += ConvertTo-AddNewRowSqlQuery -TableName $StatusTableName -InputArray $StatusValue
+		#$StatusQueriesToAdd += (ConvertTo-AddNewRowSqlQuery -TableName $StatusTableName -InputArray $StatusValue) + "`n"
+	}
+	$StatusQueriesToAdd
+	$StatusQueriesToAdd.GetType()
+	$StatusQueriesToAdd | Select-Object -First 1
 	
 	$StatusQueriesToAdd = @()
 	ForEach ($StatusValue in $StatusValuesToAdd) {
