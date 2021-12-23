@@ -439,57 +439,6 @@ Function New-TaskTrackingInitiative {
 	
 	$TasksListPath = Join-Path -Path $ProjectPath -ChildPath $TasksFileName
 	
-	$TaskList = @(
-		[PSCustomObject]@{Index = ''; Type = ''}
-		[PSCustomObject]@{Name = ''; Type = ''}
-		[PSCustomObject]@{ParentProjectID = ''; Type = ''}
-		[PSCustomObject]@{ContextID = ''; Type = ''}
-		[PSCustomObject]@{StatusID = ''; Type = ''}
-		[PSCustomObject]@{CreationDate = ''; Type = ''}
-		[PSCustomObject]@{LastUpdateDate = ''; Type = ''}
-		[PSCustomObject]@{CompletionDate = ''; Type = ''}
-		[PSCustomObject]@{DeletionDate = ''; Type = ''}
-	)
-	
-	$TaskList = [PSCustomObject]@{
-		Index = ''
-		Name = ''
-		ParentProjectID = ''
-		ContextID = ''
-		StatusID = ''
-		CreationDate = ''
-		LastUpdateDate = ''
-		CompletionDate = ''
-		DeletionDate = ''
-	}
-	
-	$Contexts = @{
-		Index = ''
-		Name = ''
-		ForeColor = ''
-		BackColor = ''
-		CreationDate = ''
-	}
-	
-	$StatusNames = @(
-	'New', 
-	'Active', 
-	'In-progress', 
-	'Paused', 
-	'Complete', 
-	'Deleted', 
-	'On-hold', 
-	'Backburner')
-	
-	$Status = @{
-		Index = ''
-		Name = ''
-		ForeColor = ''
-		BackColor = ''
-		CreationDate = ''
-	}
-	
-	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	# Make sure PSSQLite module is installed:
@@ -748,24 +697,29 @@ Function New-TaskTrackingInitiative {
 			DeletionDate = $null
 		}
 	}
-	$DemoTasksToAdd | Format-Table
 	
+	Write-Verbose "Demo tasks to add to $TasksTableName table:"
+	If ($VerbosePreference -ne 'SilentlyContinue') {
+		$DemoTasksToAdd | Format-Table
+	}
 	
-	$TaskList = @(
-		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
-		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'ParentProjectID'; Type = 'INT'}
-		[PSCustomObject]@{ColumnName = 'ContextID'; Type = 'INT'}
-		[PSCustomObject]@{ColumnName = 'StatusID'; Type = 'INT'}
-		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'LastUpdateDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'CompletionDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'DeletionDate'; Type = 'DATETIME'}
-	)
+	# Convert value array to SQL queries:
+	Write-Verbose "Converting demo Tasks array to SQL queries"
+	$TaskQueriesToAdd = @()
+	ForEach ($Task in $DemoTasksToAdd) {
+		$TaskQueriesToAdd += ConvertTo-AddNewRowSqlQuery -TableName $TasksTableName -InputArray $Task
+		#$TaskQueriesToAdd += (ConvertTo-AddNewRowSqlQuery -TableName $TasksTableName -InputArray $Task) + "`n"
+	}
+	
+	# Add demo tasks to Tasks table
+	Write-Verbose "Running queries to add demo Tasks to $TasksTableName table."
+	ForEach ($Query in $TaskQueriesToAdd) {
+		Invoke-SqliteQuery -Query $Query -Database $Database
+	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
-	Return $ContextsPath
+	Return
 } # End of New-TaskTrackingInitiative function.
 Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
 #-----------------------------------------------------------------------------------------------------------------------
