@@ -64,8 +64,12 @@ Set-Alias -Name 'Get-DefaultStatus' -Value 'Get-DefaultStatuses'
 Function Get-AllPowerShellColors {
 	<#
 	.SYNOPSIS
-	Returns a list of the default categories/contexts for a new MTM project.
+	Prints complete list of every available PowerShell color with Foreground and Background examples.
 	.DESCRIPTION
+	.PARAMETER Quiet
+	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce output.
+	.PARAMETER Grid
+	Supresses standard (default-colored) suffix text printed after each color example, which usually over-runs standard PowerShell console window width, causing a line break.
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
@@ -84,7 +88,7 @@ Function Get-AllPowerShellColors {
 			Foreach ($FgColor in $Colors) {
 				Write-Host "$FgColor|" -ForegroundColor $FgColor -BackgroundColor $BgColor -NoNewLine
 			}
-			If (!($Grid)) {Write-Host " on $BgColor"}
+			If (!($Grid)) {Write-Host " on $BgColor"} Else {Write-Host ""}
 		}
 	}
 	If ($Quiet) {Return $Colors}
@@ -93,6 +97,11 @@ Set-Alias -Name 'Get-AllColors' -Value 'Get-AllPowerShellColors'
 Set-Alias -Name 'Get-Colors' -Value 'Get-AllPowerShellColors'
 Set-Alias -Name 'Get-ColorsList' -Value 'Get-AllPowerShellColors'
 #-----------------------------------------------------------------------------------------------------------------------
+
+Get-AllPowerShellColors
+Get-AllPowerShellColors -Grid
+Get-AllPowerShellColors -Quiet
+Get-AllPowerShellColors -Grid -Quiet
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-RandomColorPair {
@@ -834,8 +843,10 @@ Function Get-MyTasks {
 		           HelpMessage = "Path to ...")]
 		[ValidateNotNullOrEmpty()]
 		[String]$Path
-		
 	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	
 	
 	Return
 } # End of Get-MyTasks function.
