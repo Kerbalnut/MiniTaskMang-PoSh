@@ -619,7 +619,6 @@ Function New-TaskTrackingInitiative {
 	
 	# Add default status list to Statuses table:
 	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Function ConvertTo-AddNewRowSqlQuery($TableName,$InputArray) {
 		<#
 		.LINK
@@ -653,7 +652,6 @@ Function New-TaskTrackingInitiative {
 		
 		Return $Query
 	} # End of sub-function.
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	$StatusNames = Get-DefaultStatuses @CommonParameters
 	
@@ -705,7 +703,65 @@ Function New-TaskTrackingInitiative {
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
-	# Create a sample/demo task to fill out the brand-new projects list so it doesn't look blank.
+	# Create a sample/demo task(s) to fill out the brand-new projects list so it doesn't look blank.
+	
+	# If making an example for every possible context/status, find which one has the most:
+	$NumOfValues = @()
+	$NumOfValues += ($StatusNames.Count)
+	$NumOfValues += ($DefaultContexts.Count)
+	$Max = $NumOfValues | Measure-Object -Maximum
+	
+	$NumOfExampleTasks = $Max.Maximum
+	
+	For ($i = 0; $i -lt $NumOfExampleTasks; $i++) {
+		$i
+	}
+	
+	For ($i = 1; $i -lt ($NumOfExampleTasks + 1); $i++) {
+		$i
+	}
+	
+	# Build values array
+	Write-Verbose "Building demo tasks array"
+	$DemoTasksToAdd = @()
+	$StatusSelection = 0
+	$ContextSelection = 0
+	For ($i = 1; $i -lt ($NumOfExampleTasks + 1); $i++) {
+		If ($StatusSelection -lt ($StatusNames.Count)) {
+			$StatusSelection++
+		} Else {
+			$StatusSelection = 1
+		}
+		If ($ContextSelection -lt ($DefaultContexts.Count)) {
+			$ContextSelection++
+		} Else {
+			$ContextSelection = 1
+		}
+		$DemoTasksToAdd += [PSCustomObject]@{
+			Name = "Demo Task $i"
+			ParentProjectID = $null
+			ContextID = $ContextSelection
+			StatusID = $StatusSelection
+			CreationDate = $CreationDate
+			LastUpdateDate = $CreationDate
+			CompletionDate = $null
+			DeletionDate = $null
+		}
+	}
+	$DemoTasksToAdd | Format-Table
+	
+	
+	$TaskList = @(
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ParentProjectID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'ContextID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'StatusID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastUpdateDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'CompletionDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'DeletionDate'; Type = 'DATETIME'}
+	)
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
