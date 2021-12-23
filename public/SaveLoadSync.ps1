@@ -734,6 +734,39 @@ Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
+Function Get-MyTasks {
+	<#
+	.SYNOPSIS
+	Print list of MTM (MiniTaskMang) tasks from default project.
+	.DESCRIPTION
+	Desc
+	.NOTES
+	Notes
+	#>
+	[Alias('Get-Tasks','Get-MyProgress','Get-MyItems','Get-MyProgressItems')]
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $True, Position = 0,
+		           ValueFromPipeline = $True, 
+		           ValueFromPipelineByPropertyName = $True,
+		           HelpMessage = "Path to ...")]
+		[ValidateNotNullOrEmpty()]
+		[String]$Path
+	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	
+	
+	Return
+} # End of Get-MyTasks function.
+Set-Alias -Name 'Get-Tasks' -Value 'Get-MyTasks'
+Set-Alias -Name 'Get-MyProgress' -Value 'Get-MyTasks'
+Set-Alias -Name 'Get-MyItems' -Value 'Get-MyTasks'
+Set-Alias -Name 'Get-MyProgressItems' -Value 'Get-MyTasks'
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
 Function New-Task {
 	<#
 	.SYNOPSIS
@@ -821,39 +854,6 @@ Function Get-MyTaskStatus {
 } # End of Get-MyTaskStatus function.
 Set-Alias -Name 'Get-MyStatus' -Value 'Get-MyTaskStatus'
 Set-Alias -Name 'Get-TaskStatus' -Value 'Get-MyTaskStatus'
-#-----------------------------------------------------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------------------------------------------
-Function Get-MyTasks {
-	<#
-	.SYNOPSIS
-	Print list of MTM (MiniTaskMang) tasks from default project.
-	.DESCRIPTION
-	Desc
-	.NOTES
-	Notes
-	#>
-	[Alias('Get-Tasks','Get-MyProgress','Get-MyItems','Get-MyProgressItems')]
-	#Requires -Version 3
-	[CmdletBinding()]
-	Param(
-		[Parameter(Mandatory = $True, Position = 0,
-		           ValueFromPipeline = $True, 
-		           ValueFromPipelineByPropertyName = $True,
-		           HelpMessage = "Path to ...")]
-		[ValidateNotNullOrEmpty()]
-		[String]$Path
-	)
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	
-	
-	Return
-} # End of Get-MyTasks function.
-Set-Alias -Name 'Get-Tasks' -Value 'Get-MyTasks'
-Set-Alias -Name 'Get-MyProgress' -Value 'Get-MyTasks'
-Set-Alias -Name 'Get-MyItems' -Value 'Get-MyTasks'
-Set-Alias -Name 'Get-MyProgressItems' -Value 'Get-MyTasks'
 #-----------------------------------------------------------------------------------------------------------------------
 
 
