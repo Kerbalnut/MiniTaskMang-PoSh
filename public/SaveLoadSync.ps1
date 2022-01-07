@@ -107,7 +107,7 @@ Get-AllPowerShellColors -Grid -Quiet
 Function Get-RandomColorPair {
 	<#
 	.SYNOPSIS
-	Returns a list of the default categories/contexts for a new MTM project.
+	
 	.DESCRIPTION
 	.PARAMETER Number
 	Number of color pairs to return. Will attempt to use as few repeating pairs as possible, up to the maximum number of available pairs.
@@ -292,6 +292,8 @@ Function New-TaskTrackingInitiative {
 	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	# If given full project folder name & path parameter together, separate them out.
 	
 	# If source folder given, combine with project name to get full project folder path.
@@ -450,6 +452,115 @@ Function New-TaskTrackingInitiative {
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
+	$TaskList = @(
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ParentProjectID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'ContextID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'StatusID'; Type = 'INT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastUpdateDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'CompletionDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'DeletionDate'; Type = 'DATETIME'}
+	)
+	
+	$Contexts = @(
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
+	)
+	
+	$Status = @(
+		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
+		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
+		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
+	)
+	
+	$TasksTableName = "Tasks"
+	
+	$ContextsTableName = "Contexts"
+	
+	$StatusTableName = "Status"
+	
+	$StatusNames = Get-DefaultStatuses @CommonParameters
+	
+	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count) @CommonParameters
+	
+	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count) @CommonParameters
+	
+	# Build default values array
+	Write-Verbose "Building default Status values array"
+	$CreationDate = Get-Date
+	$StatusValuesToAdd = @()
+	ForEach ($status in $StatusNames) {
+		$ColorPair = $StatusColors.Pop()
+		$StatusValuesToAdd += [PSCustomObject]@{Name = $status; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+	}
+	
+	Write-Verbose "Building default Context values array"
+	$ContextValuesToAdd = @()
+	ForEach ($context in $DefaultContexts) {
+		$ColorPair = $ContextsColors.Pop()
+		$ContextValuesToAdd += [PSCustomObject]@{Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Create a sample/demo task(s) to fill out the brand-new projects list so it doesn't look blank.
+	
+	# If making an example for every possible context/status, find which one has the most:
+	$NumOfValues = @()
+	$NumOfValues += ($StatusNames.Count)
+	$NumOfValues += ($DefaultContexts.Count)
+	$Max = $NumOfValues | Measure-Object -Maximum
+	
+	$NumOfExampleTasks = $Max.Maximum
+	
+	# Build values array
+	Write-Verbose "Building demo tasks array"
+	$DemoTasksToAdd = @()
+	$StatusSelection = 0
+	$ContextSelection = 0
+	For ($i = 1; $i -lt ($NumOfExampleTasks + 1); $i++) {
+		If ($StatusSelection -lt ($StatusNames.Count)) {
+			$StatusSelection++
+		} Else {
+			$StatusSelection = 1
+		}
+		If ($ContextSelection -lt ($DefaultContexts.Count)) {
+			$ContextSelection++
+		} Else {
+			$ContextSelection = 1
+		}
+		$DemoTasksToAdd += [PSCustomObject]@{
+			Name = "Demo Task $i"
+			ParentProjectID = $null
+			ContextID = $ContextSelection
+			StatusID = $StatusSelection
+			CreationDate = $CreationDate
+			LastUpdateDate = $CreationDate
+			CompletionDate = $null
+			DeletionDate = $null
+		}
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	
+	
+	
+	
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	# Make sure PSSQLite module is installed:
 	#https://github.com/RamblingCookieMonster/PSSQLite
 	If (!(Get-Module -ListAvailable -Name "PSSQLite")) {
@@ -482,18 +593,6 @@ Function New-TaskTrackingInitiative {
 		}
 	}
 	
-	$TaskList = @(
-		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
-		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'ParentProjectID'; Type = 'INT'}
-		[PSCustomObject]@{ColumnName = 'ContextID'; Type = 'INT'}
-		[PSCustomObject]@{ColumnName = 'StatusID'; Type = 'INT'}
-		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'LastUpdateDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'CompletionDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'DeletionDate'; Type = 'DATETIME'}
-	)
-	
 	Function ConvertTo-NewSQLTableString($TableName,$InputArray) {
 		<#
 		.NOTES
@@ -508,7 +607,7 @@ Function New-TaskTrackingInitiative {
 			$i++
 			If ($i -eq 1) {
 				$Query += "$($column.ColumnName) $($column.Type) PRIMARY KEY AUTOINCREMENT, "
-			} ElseIf ($i -eq $TotalCount) {
+			} ElseIf ($i -ge $TotalCount) {
 				$Query += "$($column.ColumnName) $($column.Type)"
 			} Else {
 				$Query += "$($column.ColumnName) $($column.Type), "
@@ -518,7 +617,7 @@ Function New-TaskTrackingInitiative {
 		Return $Query
 	} # End of sub-function.
 	
-	$TasksTableName = "Tasks"
+	# Tasks
 	
 	Write-Verbose "Attempting to create $TasksTableName table in $($DbFileName):"
 	$Query = ConvertTo-NewSQLTableString -TableName $TasksTableName -InputArray $TaskList
@@ -533,16 +632,7 @@ Function New-TaskTrackingInitiative {
 		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($TasksTableName)"
 	}
 	
-	$Contexts = @(
-		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
-		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
-	)
-	
-	$ContextsTableName = "Contexts"
+	# Contexts
 	
 	Write-Verbose "Attempting to create $ContextsTableName table in $($DbFileName):"
 	$Query = ConvertTo-NewSQLTableString -TableName $ContextsTableName -InputArray $Contexts
@@ -553,16 +643,7 @@ Function New-TaskTrackingInitiative {
 		Invoke-SqliteQuery -Database $Database -Query "PRAGMA table_info($ContextsTableName)"
 	}
 	
-	$Status = @(
-		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
-		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
-		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
-		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
-	)
-	
-	$StatusTableName = "Status"
+	# Status
 	
 	Write-Verbose "Attempting to create $StatusTableName table in $($DbFileName):"
 	$Query = ConvertTo-NewSQLTableString -TableName $StatusTableName -InputArray $Status
@@ -593,7 +674,7 @@ Function New-TaskTrackingInitiative {
 			$i++
 			ForEach ($property in ($KeyValuePair.PsObject.Properties)) {
 				If (($property.Name) -ne 'ID' -And ($property.Name) -ne 'Index') {
-					If ($i -eq $TotalCount) {
+					If ($i -ge $TotalCount) {
 						$ColumnNames += "$($property.Name)"
 						$ColumnValues += "$($property.Value)"
 					} Else {
@@ -610,28 +691,6 @@ Function New-TaskTrackingInitiative {
 		
 		Return $Query
 	} # End of sub-function.
-	
-	$StatusNames = Get-DefaultStatuses @CommonParameters
-	
-	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count) @CommonParameters
-	
-	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count) @CommonParameters
-	
-	# Build default values array
-	Write-Verbose "Building default Status values array"
-	$CreationDate = Get-Date
-	$StatusValuesToAdd = @()
-	ForEach ($status in $StatusNames) {
-		$ColorPair = $StatusColors.Pop()
-		$StatusValuesToAdd += [PSCustomObject]@{Name = $status; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
-	}
-	
-	Write-Verbose "Building default Context values array"
-	$ContextValuesToAdd = @()
-	ForEach ($context in $DefaultContexts) {
-		$ColorPair = $ContextsColors.Pop()
-		$ContextValuesToAdd += [PSCustomObject]@{Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
-	}
 	
 	# Convert value arrays to SQL queries:
 	Write-Verbose "Converting default Status array values to SQL queries"
@@ -660,57 +719,6 @@ Function New-TaskTrackingInitiative {
 	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	# Create a sample/demo task(s) to fill out the brand-new projects list so it doesn't look blank.
-	
-	# If making an example for every possible context/status, find which one has the most:
-	$NumOfValues = @()
-	$NumOfValues += ($StatusNames.Count)
-	$NumOfValues += ($DefaultContexts.Count)
-	$Max = $NumOfValues | Measure-Object -Maximum
-	
-	$NumOfExampleTasks = $Max.Maximum
-	
-	For ($i = 0; $i -lt $NumOfExampleTasks; $i++) {
-		$i
-	}
-	
-	For ($i = 1; $i -lt ($NumOfExampleTasks + 1); $i++) {
-		$i
-	}
-	
-	# Build values array
-	Write-Verbose "Building demo tasks array"
-	$DemoTasksToAdd = @()
-	$StatusSelection = 0
-	$ContextSelection = 0
-	For ($i = 1; $i -lt ($NumOfExampleTasks + 1); $i++) {
-		If ($StatusSelection -lt ($StatusNames.Count)) {
-			$StatusSelection++
-		} Else {
-			$StatusSelection = 1
-		}
-		If ($ContextSelection -lt ($DefaultContexts.Count)) {
-			$ContextSelection++
-		} Else {
-			$ContextSelection = 1
-		}
-		$DemoTasksToAdd += [PSCustomObject]@{
-			Name = "Demo Task $i"
-			ParentProjectID = $null
-			ContextID = $ContextSelection
-			StatusID = $StatusSelection
-			CreationDate = $CreationDate
-			LastUpdateDate = $CreationDate
-			CompletionDate = $null
-			DeletionDate = $null
-		}
-	}
-	
-	Write-Verbose "Demo tasks to add to $TasksTableName table:"
-	If ($VerbosePreference -ne 'SilentlyContinue') {
-		$DemoTasksToAdd | Format-Table
-	}
 	
 	# Convert value array to SQL queries:
 	Write-Verbose "Converting demo Tasks array to SQL queries"
@@ -755,6 +763,7 @@ Function Get-MyTasks {
 		[String]$Path
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	
 	
 	
