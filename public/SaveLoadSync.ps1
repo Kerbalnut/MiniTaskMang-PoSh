@@ -77,11 +77,7 @@ Function Get-AllPowerShellColors {
 	.EXAMPLE
 	Get-AllPowerShellColors -List
 	
-	Returns list of available named PowerShell colors.
-	.EXAMPLE
-	Get-AllPowerShellColors -Quiet
-	
-	Same command as above.
+	Returns list of available named PowerShell colors. -List is an alias for parameter -Quiet.
 	.EXAMPLE
 	(Get-AllPowerShellColors -Quiet).Count
 	
@@ -993,6 +989,55 @@ Function Get-MyTasks {
 		
 		[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
 		
+		switch ($ForeColor) {
+			'Black' { $fcolor = "30"; break }
+			'Blue' { $fcolor = "34"; break }
+			'Cyan' { $fcolor = "36"; break }
+			'DarkBlue' { $fcolor = "38;"; break }
+			'DarkCyan' { $fcolor = "38;"; break }
+			'DarkGray' { $fcolor = "38;"; break }
+			'DarkGreen' { $fcolor = "38;"; break }
+			'DarkMagenta' { $fcolor = "38;"; break }
+			'DarkRed' { $fcolor = "38;"; break }
+			'DarkYellow' { $fcolor = "38;"; break }
+			'Gray' { $fcolor = "38;"; break }
+			'Green' { $fcolor = "32"; break }
+			'Magenta' { $fcolor = "35"; break }
+			'Red' { $fcolor = "31"; break }
+			'White' { $fcolor = "37"; break }
+			'Yellow' { $fcolor = "33"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$fcolor = "39"
+			}
+		}		
+		switch ($ForeColor) {
+			'Black' {}
+			'Blue' {}
+			'Cyan' {}
+			'DarkBlue' {}
+			'DarkCyan' {}
+			'DarkGray' {}
+			'DarkGreen' {}
+			'DarkMagenta' {}
+			'DarkRed' {}
+			'DarkYellow' {}
+			'Gray' {}
+			'Green' {}
+			'Magenta' {}
+			'Red' {}
+			'White' {}
+			'Yellow' {}
+			'.exe' { $fcolor = "93"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$fcolor = "39"
+			}
+		}		
 		switch ($ForeColor) {
 			'Black' {}
 			'Blue' {}
