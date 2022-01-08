@@ -66,14 +66,30 @@ Function Get-AllPowerShellColors {
 	.SYNOPSIS
 	Prints complete list of every available PowerShell color with Foreground and Background examples.
 	.DESCRIPTION
-	.PARAMETER Quiet
-	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce output.
 	.PARAMETER Grid
 	Supresses standard (default-colored) suffix text printed after each color example, which usually over-runs standard PowerShell console window width, causing a line break.
+	.PARAMETER Quiet
+	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce output.
 	.EXAMPLE
 	Get-AllPowerShellColors -Grid
+	
+	Prints to console a list of every powershell color applied in every variety of Foreground color and Background color combination. Traditionally, there are 16 available colors, so this switch generates a nice-looking grid on standard-width PowerShell terminal.
+	.EXAMPLE
+	Get-AllPowerShellColors -List
+	
+	Returns list of available named PowerShell colors.
 	.EXAMPLE
 	Get-AllPowerShellColors -Quiet
+	
+	Same command as above.
+	.EXAMPLE
+	(Get-AllPowerShellColors -Quiet).Count
+	
+	Returns number of available PowerShell colors.
+	.EXAMPLE
+	[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
+	
+	Returns list of available named PowerShell colors, in alphabetical order.
 	.EXAMPLE
 	Get-AllPowerShellColors -Grid -Quiet
 	.NOTES
@@ -84,7 +100,10 @@ Function Get-AllPowerShellColors {
 	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
+		[Alias('ShowExamples','Show','Examples')]
 		[Switch]$Grid,
+		
+		[Alias('List','q','l')]
 		[Switch]$Quiet
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -953,22 +972,69 @@ Function Get-MyTasks {
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
+	[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
+	
 	If ($DebugPreference -ne 'SilentlyContinue') {
 		$Tasks | Format-Table
 		$Contexts | Format-Table
 		$Statuses | Format-Table
 	}
 	
-	Function Get-HighlightedText($ListObj,$ID) {
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	Function ConvertTo-VtColorString($ForeColor,$BackColor) {
 		
+		switch ($_.Extension) {
+			'.exe' { $color = "93"; break }
+			'.ps1xml' { $color = '32'; break }
+			'.dll' { $color = "35"; break }
+			default { $color = "0" }
+		}
+		
+		[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
+		
+		switch ($ForeColor) {
+			'Black' {}
+			'Blue' {}
+			'Cyan' {}
+			'DarkBlue' {}
+			'DarkCyan' {}
+			'DarkGray' {}
+			'DarkGreen' {}
+			'DarkMagenta' {}
+			'DarkRed' {}
+			'DarkYellow' {}
+			'Gray' {}
+			'Green' {}
+			'Magenta' {}
+			'Red' {}
+			'White' {}
+			'Yellow' {}
+			'.exe' { $fcolor = "93"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$fcolor = "39"
+			}
+		}
 	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	$Tasks | Format-Table -Property ID, Name, ParentProjectID, @{
 		Label = "ContextID"
-		Expression =
-		{
-			switch ($_.Extension)
-			{
+		Expression = {
+			Write-Host "ContextID = $($_.Name)"
+			
+			ForEach ($context in $Contexts) {
+				If ($context.ID -eq ($_.ContextID)) {
+					$ForegroundColorSel = $context.ForeColor
+					$BackgroundColorSel = $context.BackColor
+				}
+			}
+			
+			switch ($_.Extension) {
 				'.exe' { $color = "93"; break }
 				'.ps1xml' { $color = '32'; break }
 				'.dll' { $color = "35"; break }
@@ -978,8 +1044,21 @@ Function Get-MyTasks {
 			"$e[${color}m$($_.Name)${e}[0m"
 		}
 	}
-	$Contexts | Format-Table
-	$Statuses | Format-Table
+	
+	
+	$Tasks | Format-Table -Property ID, Name, ParentProjectID, @{
+		Label = "ContextID"
+		Expression =
+		{
+			Write-Host "ContextID = $($_.ContextID)"
+			
+		}
+	}
+	
+	
+	
+	
+	
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
@@ -989,6 +1068,13 @@ Function Get-MyTasks {
 	
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	Function Get-HighlightedText($ListObj,$ID) {
+		
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	
 	
 	
