@@ -307,12 +307,12 @@ Function New-TaskTrackingInitiative {
 	
 	The alias "New-ProjectInit" is used instead of "New-TaskTrackingInitiative".
 	.EXAMPLE
-	New-ProjectInit -FolderPath "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
+	New-ProjectInit -FolderPath "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project" -Verbose
 	.EXAMPLE
-	New-ProjectInit -FolderPath "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Nested Folder\parent 1\child 2\Test Project"
+	New-ProjectInit -FolderPath "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Nested Folder\parent 1\child 2\Test Project" -Verbose
 	#>
 	#Requires -Version 3
-	[Alias('New-ProjectInit')]
+	[Alias('New-ProjectInit','New-TaskTrackingInit')]
 	[CmdletBinding(DefaultParameterSetName = "PathName")]
 	Param(
 		[Parameter(ParameterSetName = "PathName", 
@@ -454,6 +454,7 @@ Function New-TaskTrackingInitiative {
 		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'Enabled'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
 		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
 	)
@@ -463,6 +464,7 @@ Function New-TaskTrackingInitiative {
 		[PSCustomObject]@{ColumnName = 'Name'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'ForeColor'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'BackColor'; Type = 'TEXT'}
+		[PSCustomObject]@{ColumnName = 'Enabled'; Type = 'TEXT'}
 		[PSCustomObject]@{ColumnName = 'CreationDate'; Type = 'DATETIME'}
 		[PSCustomObject]@{ColumnName = 'LastModifiedDate'; Type = 'DATETIME'}
 	)
@@ -496,7 +498,15 @@ Function New-TaskTrackingInitiative {
 	ForEach ($status in $StatusNames) {
 		$i++
 		$ColorPair = $StatusColors.Pop()
-		$StatusValuesToAdd += [PSCustomObject]@{ID = $i; Name = $status; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+		$StatusValuesToAdd += [PSCustomObject]@{
+			ID = $i
+			Name = $status
+			ForeColor = ($ColorPair.ForeColor)
+			BackColor = ($ColorPair.BackColor)
+			Enabled = $True
+			CreationDate = $CreationDate
+			LastModifiedDate = $CreationDate
+		}
 	}
 	
 	If ($VerbosePreference -ne 'SilentlyContinue') {
@@ -509,7 +519,15 @@ Function New-TaskTrackingInitiative {
 	ForEach ($context in $DefaultContexts) {
 		$i++
 		$ColorPair = $ContextsColors.Pop()
-		$ContextValuesToAdd += [PSCustomObject]@{ID = $i; Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+		$ContextValuesToAdd += [PSCustomObject]@{
+			ID = $i
+			Name = $context
+			ForeColor = ($ColorPair.ForeColor)
+			BackColor = ($ColorPair.BackColor)
+			Enabled = $True
+			CreationDate = $CreationDate
+			LastModifiedDate = $CreationDate
+		}
 	}
 	
 	If ($VerbosePreference -ne 'SilentlyContinue') {
@@ -563,55 +581,45 @@ Function New-TaskTrackingInitiative {
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
-	$ContextIDColName = $Contexts[0].ColumnName
-	
-	$ContextValuesToAdd | Format-Table
-	
-	$StatusIDColName = $Status[0].ColumnName
-	
-	$StatusValuesToAdd | Format-Table
-	
-	
-	
-	
-	
 	# Export demo data to data source files, whatever format they may be:
+	
 	$Method = 0
 	switch ($Method) {
 		0 {
-			# CSV
+			Write-Verbose "CSV data type chosen."
 			
-			$StatusValuesToAdd | Export-Csv -Path -NoTypeInformation
+			$FileExtension = ".csv"
+			$ContextsFileName = $ContextsTableName + $FileExtension
+			$StatusesFileName = $StatusTableName + $FileExtension
+			$TasksFileName = $TasksTableName + $FileExtension
+			$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
+			$StatusesPath = Join-Path -Path $ProjectPath -ChildPath $StatusesFileName
+			$TasksListPath = Join-Path -Path $ProjectPath -ChildPath $TasksFileName
 			
-			$ContextValuesToAdd
-			
-			$DemoTasksToAdd
+			$StatusValuesToAdd | Export-Csv -Path $StatusesPath -NoTypeInformation
+			$ContextValuesToAdd | Export-Csv -Path $ContextsPath -NoTypeInformation
+			$DemoTasksToAdd | Export-Csv -Path $TasksListPath -NoTypeInformation
 			
 		}
 		1 {
-			# XML
+			Write-Verbose "XML data type chosen."
 		}
 		2 {
-			# JSON
+			Write-Verbose "JSON data type chosen."
 		}
 		Default {
 			Write-Error "Data file format choice error."
+			Throw "Data file format choice error."
 		}
 	}
 	
 	
 	
-	$StatusValuesToAdd
-	
-	$ContextValuesToAdd
-	
-	$DemoTasksToAdd
 	
 	
+	Return
 	
-	
-	
-	
+	#
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -686,6 +694,7 @@ Function New-TaskTrackingInitiative {
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
+	#>
 	
 	
 	
@@ -872,6 +881,7 @@ Function New-TaskTrackingInitiative {
 	Return
 } # End of New-TaskTrackingInitiative function.
 Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
+Set-Alias -Name 'New-TaskTrackingInit' -Value 'New-TaskTrackingInitiative'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -883,6 +893,11 @@ Function Get-MyTasks {
 	Desc
 	.NOTES
 	Notes
+	.EXAMPLE
+	Get-MyTasks -Path "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
+	.LINK
+	https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+	https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
 	#>
 	[Alias('Get-Tasks','Get-MyProgress','Get-MyItems','Get-MyProgressItems')]
 	#Requires -Version 3
@@ -895,6 +910,84 @@ Function Get-MyTasks {
 		[ValidateNotNullOrEmpty()]
 		[String]$Path
 	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$ProjectPath = $Path
+	$TasksTableName = "Tasks"
+	$ContextsTableName = "Contexts"
+	$StatusTableName = "Status"
+	
+	$FileExtension = ".csv"
+	$ContextsFileName = $ContextsTableName + $FileExtension
+	$StatusesFileName = $StatusTableName + $FileExtension
+	$TasksFileName = $TasksTableName + $FileExtension
+	$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
+	$StatusesPath = Join-Path -Path $ProjectPath -ChildPath $StatusesFileName
+	$TasksListPath = Join-Path -Path $ProjectPath -ChildPath $TasksFileName
+	
+	$Tasks = Import-Csv -Path $TasksListPath
+	$Contexts = Import-Csv -Path $ContextsPath
+	$Statuses = Import-Csv -Path $StatusesPath
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+	
+	#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+	
+	dir -Exclude *.xml $pshome | Format-Table Mode,@{
+		Label = "Name"
+		Expression =
+		{
+			switch ($_.Extension)
+			{
+				'.exe' { $color = "93"; break }
+				'.ps1xml' { $color = '32'; break }
+				'.dll' { $color = "35"; break }
+			   default { $color = "0" }
+			}
+			$e = [char]27
+		   "$e[${color}m$($_.Name)${e}[0m"
+		}
+	 },Length
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	If ($DebugPreference -ne 'SilentlyContinue') {
+		$Tasks | Format-Table
+		$Contexts | Format-Table
+		$Statuses | Format-Table
+	}
+	
+	Function Get-HighlightedText($ListObj,$ID) {
+		
+	}
+	
+	$Tasks | Format-Table -Property ID, Name, ParentProjectID, @{
+		Label = "ContextID"
+		Expression =
+		{
+			switch ($_.Extension)
+			{
+				'.exe' { $color = "93"; break }
+				'.ps1xml' { $color = '32'; break }
+				'.dll' { $color = "35"; break }
+				default { $color = "0" }
+			}
+			$e = [char]27
+			"$e[${color}m$($_.Name)${e}[0m"
+		}
+	}
+	$Contexts | Format-Table
+	$Statuses | Format-Table
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	Write-PSObject $servers -MatchMethod Exact -Column "Manufacture" -Value "HP" -ValueForeColor Yellow -ValueBackColor Red -RowForeColor White -RowBackColor Blue;
+	
+	Write
+	
+	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	
