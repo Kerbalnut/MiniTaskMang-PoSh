@@ -283,7 +283,15 @@ Function New-TaskTrackingInitiative {
 	.SYNOPSIS
 	Creates the required files to start a MiniTaskMang (MTM) project at folder path.
 	.DESCRIPTION
-	Desc
+	If the FolderPath parameter is used, that folder's name will become the project's name. If SourcePath is defined, the ProjectName parameter also must be defined, and will become the new project folder. Folders will be created if the paths don't exist.
+	
+	Project tracking will use multiple files. It's recommended to choose a dedicated folder path that is empty.
+	.PARAMETER FolderPath
+	The folder name for provided FolderPath will become the project's name. Recommended to choose an empty folder dedicated to the project. Folders will be created if they do not exist. Not compatible with SourcePath or ProjectName parameters.
+	.PARAMETER SourcePath
+	Path for the project folder to be created in. Use ProjectName to define this new folder name. Folders will be created if they do not exist. Not compatible with FolderPath.
+	.PARAMETER ProjectName
+	Project folder name. Requires SourcePath parameter to define where this folder will be created. Not compatible with FolderPath.
 	.NOTES
 	Notes
 	.EXAMPLE
@@ -335,8 +343,6 @@ Function New-TaskTrackingInitiative {
 		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
 		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
 	}
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	# If given full project folder name & path parameter together, separate them out.
@@ -427,76 +433,9 @@ Function New-TaskTrackingInitiative {
 		}
 	}
 	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	#-----------------------------------------------------------------------------------------------------------------------
 	
-	# Create default categories/contexts list:
-	
-	$ContextsFileName = "Contexts.csv"
-	
-	$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
-	
-	$DefaultContexts = Get-DefaultContexts
-	$DefaultContexts = Get-DefaultContexts @CommonParameters
-	
-	$DefaultContextsList = @()
-	
-	ForEach ($context in $DefaultContexts) {
-		$Method = 0
-		switch ($Method) {
-			0 {
-				$NewObj = New-Object -TypeName PSCustomObject -Property @{
-					Name = $context
-					Active = "Enabled"
-				}
-			}
-			1 {
-				$NewObj = [PSCustomObject]@{
-					Name = $context
-					Active = "Enabled"
-				}
-			}
-			Default {Throw 'Horrible error: $DefaultContexts ForEach wrong $Method'}
-		}
-		$DefaultContextsList += $NewObj
-	}
-	
-	# Get file extension:
-	$Method = 0
-	switch ($Method) {
-		0 {
-			$FileExtension = [System.IO.Path]::GetExtension($ContextsPath)
-		}
-		1 {
-			$FileExtension = ((Split-Path -Path $ContextsPath -Leaf).Split('.'))[1]
-		}
-		2 {
-			$FileExtension = (Get-ChildItem -Path $ContextsPath).Extension
-		}
-		Default {Throw 'Horrible error: Get file extension wrong $Method'}
-	}
-	
-	# Regex remove any . in $FileExtension
-	$FileExtension = $FileExtension -replace '^\.',''
-	
-	# Create Contexts file with default contexts
-	If ($FileExtension -eq "csv") {
-		# https://codeigo.com/powershell/export-to-csv-in-powershell
-		$DefaultContextsList | Export-Csv -Path $ContextsPath -NoTypeInformation #-Append
-	} Else {
-		New-Item -Path $ContextsPath -ItemType File
-		
-		Set-Content -Path $ContextsPath -Value $DefaultContextsList
-	}
-	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	# Create tasks/projects list:
-	
-	$TasksFileName = "TasksList.csv"
-	
-	$TasksListPath = Join-Path -Path $ProjectPath -ChildPath $TasksFileName
-	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	# Start building default Contexts, Statuses, and Tasks lists:
 	
 	$TaskList = @(
 		[PSCustomObject]@{ColumnName = 'ID'; Type = 'INTEGER'}
@@ -534,15 +473,20 @@ Function New-TaskTrackingInitiative {
 	
 	$StatusTableName = "Status"
 	
+	$DefaultContexts = Get-DefaultContexts @CommonParameters
+	$DefaultContexts = Get-DefaultContexts
+	
 	$StatusNames = Get-DefaultStatuses @CommonParameters
+	$StatusNames = Get-DefaultStatuses
 	
 	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count) @CommonParameters
 	
 	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count) @CommonParameters
 	
-	$StatusNames = Get-DefaultStatuses
 	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count)
 	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count)
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	# Build default values array
 	Write-Verbose "Building default Status values array"
@@ -662,6 +606,86 @@ Function New-TaskTrackingInitiative {
 	$ContextValuesToAdd
 	
 	$DemoTasksToAdd
+	
+	
+	
+	
+	
+	
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Create default categories/contexts list:
+	
+	$ContextsFileName = "Contexts.csv"
+	
+	$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
+	
+	$DefaultContexts = Get-DefaultContexts @CommonParameters
+	$DefaultContexts = Get-DefaultContexts
+	
+	$DefaultContextsList = @()
+	
+	ForEach ($context in $DefaultContexts) {
+		$Method = 0
+		switch ($Method) {
+			0 {
+				$NewObj = New-Object -TypeName PSCustomObject -Property @{
+					Name = $context
+					Active = "Enabled"
+				}
+			}
+			1 {
+				$NewObj = [PSCustomObject]@{
+					Name = $context
+					Active = "Enabled"
+				}
+			}
+			Default {Throw 'Horrible error: $DefaultContexts ForEach wrong $Method'}
+		}
+		$DefaultContextsList += $NewObj
+	}
+	
+	# Get file extension:
+	$Method = 0
+	switch ($Method) {
+		0 {
+			$FileExtension = [System.IO.Path]::GetExtension($ContextsPath)
+		}
+		1 {
+			$FileExtension = ((Split-Path -Path $ContextsPath -Leaf).Split('.'))[1]
+		}
+		2 {
+			$FileExtension = (Get-ChildItem -Path $ContextsPath).Extension
+		}
+		Default {Throw 'Horrible error: Get file extension wrong $Method'}
+	}
+	
+	# Regex remove any . in $FileExtension
+	$FileExtension = $FileExtension -replace '^\.',''
+	
+	# Create Contexts file with default contexts
+	If ($FileExtension -eq "csv") {
+		# https://codeigo.com/powershell/export-to-csv-in-powershell
+		$DefaultContextsList | Export-Csv -Path $ContextsPath -NoTypeInformation #-Append
+	} Else {
+		New-Item -Path $ContextsPath -ItemType File
+		
+		Set-Content -Path $ContextsPath -Value $DefaultContextsList
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Create tasks/projects list:
+	
+	$TasksFileName = "TasksList.csv"
+	
+	$TasksListPath = Join-Path -Path $ProjectPath -ChildPath $TasksFileName
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	
 	
 	
