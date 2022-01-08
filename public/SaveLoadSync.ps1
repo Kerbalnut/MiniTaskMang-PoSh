@@ -70,6 +70,12 @@ Function Get-AllPowerShellColors {
 	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce output.
 	.PARAMETER Grid
 	Supresses standard (default-colored) suffix text printed after each color example, which usually over-runs standard PowerShell console window width, causing a line break.
+	.EXAMPLE
+	Get-AllPowerShellColors -Grid
+	.EXAMPLE
+	Get-AllPowerShellColors -Quiet
+	.EXAMPLE
+	Get-AllPowerShellColors -Grid -Quiet
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
@@ -98,11 +104,6 @@ Set-Alias -Name 'Get-Colors' -Value 'Get-AllPowerShellColors'
 Set-Alias -Name 'Get-ColorsList' -Value 'Get-AllPowerShellColors'
 #-----------------------------------------------------------------------------------------------------------------------
 
-Get-AllPowerShellColors
-Get-AllPowerShellColors -Grid
-Get-AllPowerShellColors -Quiet
-Get-AllPowerShellColors -Grid -Quiet
-
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-RandomColorPair {
 	<#
@@ -110,23 +111,58 @@ Function Get-RandomColorPair {
 	
 	.DESCRIPTION
 	.PARAMETER Number
-	Number of color pairs to return. Will attempt to use as few repeating pairs as possible, up to the maximum number of available pairs.
+	Number of color pairs to return. Will attempt to use as few repeating pairs as possible, up to the maximum number of available pairs. If more than the maximum is requested, some pairs will be repeated.
+	.PARAMETER ShowResults
+	Prints examples of the randomly-chosen color pairs to terminal, along with the results returned to pipeline.
+	
+	Displayed using Write-Host with -ForegroundColor and -BackgroundColor options
 	.PARAMETER ShowMaxNumber
 	Returns the maximum number of available color pairs.
 	.PARAMETER ShowAllPairs
-	Display all available color pairs.
+	Prints all available color pairs directly to terminal. Does not randomize output.
+	
+	Displayed using Write-Host with -ForegroundColor and -BackgroundColor options.
 	.PARAMETER NoBrightColors
-	Do not use color pairs with bright backgrounds.
-	.PARAMETER ShowResults
-	Display the randomly-chosen color pairs along with results.
+	Do not use color-pairs with bright backgrounds.
+	.PARAMETER RawOutput
+	Returns raw array of all available color-pairs this function contains.  Does not randomize output.
+	.EXAMPLE
+	Get-RandomColorPair -ShowMaxNumber
+	
+	Returns an integer value of the maximum number of color-pairs this function can generate. If more than the maximum is requested, some pairs will be repeated.
+	.EXAMPLE
+	Get-RandomColorPair -ShowAllPairs
+	
+	Prints an example of every available color-pair to the terminal, using Write-Host with -ForegroundColor and -BackgroundColor options.
+	.EXAMPLE
+	Get-RandomColorPair -ShowResults -Number (Get-RandomColorPair -ShowMaxNumber) | Out-Null
+	
+	Same as above command:
+	Get-RandomColorPair -ShowAllPairs
+	.EXAMPLE
+	Get-RandomColorPair -ShowAllPairs -NoBrightColors
+	
+	Same as above command, except color pairs with bright backgrounds are restricted.
+	.EXAMPLE
+	Get-RandomColorPair -ShowMaxNumber -NoBrightColors
+	
+	Returns integer of maximum number of color-pairs this function contains, without bright backgrounds.
+	.EXAMPLE
+	(Get-RandomColorPair -ShowMaxNumber) - (Get-RandomColorPair -ShowMaxNumber -NoBrightColors)
+	
+	Opposite of above command:
+	Returns integer of number of color-pairs WITH bright backgrounds.
+	.EXAMPLE
+	Get-RandomColorPair -RawOutput
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
 	#>
 	#Requires -Version 3
-	[CmdletBinding(DefaultParameterSetName = "GetNumberOfPairs")]
+	#[CmdletBinding(DefaultParameterSetName = "GetNumberOfPairs")]
+	[CmdletBinding(DefaultParameterSetName = "ShowAllPairs")]
 	Param(
-		[Parameter(Position = 0, ParameterSetName = "GetNumberOfPairs")]
+		[Parameter(Position = 0, Mandatory = $True, ParameterSetName = "GetNumberOfPairs")]
 		[Alias('Count','n')]
 		[Int]$Number,
 		
@@ -139,9 +175,14 @@ Function Get-RandomColorPair {
 		[Parameter(ParameterSetName = "ShowAllPairs")]
 		[Switch]$ShowAllPairs,
 		
+		[Parameter(ParameterSetName = "RawOutput")]
+		[Switch]$RawOutput,
+		
 		[Switch]$NoBrightColors
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Define color-pairs array:
 	
 	$ColorPairs = @(
 		[PSCustomObject]@{ForeColor = 'Green'; BackColor = 'Black'; BeenUsed = $False; BrightColor = $False}
@@ -173,6 +214,10 @@ Function Get-RandomColorPair {
 		}
 		$ColorPairs = $TempColorPairs
 		Remove-Variable -Name 'TempColorPairs'
+	}
+	
+	If ($RawOutput) {
+		Return $ColorPairs
 	}
 	
 	If ($ShowMaxNumber) {
@@ -390,6 +435,7 @@ Function New-TaskTrackingInitiative {
 	
 	$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
 	
+	$DefaultContexts = Get-DefaultContexts
 	$DefaultContexts = Get-DefaultContexts @CommonParameters
 	
 	$DefaultContextsList = @()
@@ -494,20 +540,36 @@ Function New-TaskTrackingInitiative {
 	
 	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count) @CommonParameters
 	
+	$StatusNames = Get-DefaultStatuses
+	[System.Collections.Stack]$StatusColors = Get-RandomColorPair -Number ($StatusNames.Count)
+	[System.Collections.Stack]$ContextsColors = Get-RandomColorPair -Number ($DefaultContexts.Count)
+	
 	# Build default values array
 	Write-Verbose "Building default Status values array"
 	$CreationDate = Get-Date
 	$StatusValuesToAdd = @()
+	$i = 0
 	ForEach ($status in $StatusNames) {
+		$i++
 		$ColorPair = $StatusColors.Pop()
-		$StatusValuesToAdd += [PSCustomObject]@{Name = $status; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+		$StatusValuesToAdd += [PSCustomObject]@{ID = $i; Name = $status; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+	}
+	
+	If ($VerbosePreference -ne 'SilentlyContinue') {
+		$StatusValuesToAdd | Format-Table
 	}
 	
 	Write-Verbose "Building default Context values array"
 	$ContextValuesToAdd = @()
+	$i = 0
 	ForEach ($context in $DefaultContexts) {
+		$i++
 		$ColorPair = $ContextsColors.Pop()
-		$ContextValuesToAdd += [PSCustomObject]@{Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+		$ContextValuesToAdd += [PSCustomObject]@{ID = $i; Name = $context; ForeColor = ($ColorPair.ForeColor); BackColor = ($ColorPair.BackColor); CreationDate = $CreationDate; LastModifiedDate = $CreationDate}
+	}
+	
+	If ($VerbosePreference -ne 'SilentlyContinue') {
+		$ContextValuesToAdd | Format-Table
 	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -539,6 +601,7 @@ Function New-TaskTrackingInitiative {
 			$ContextSelection = 1
 		}
 		$DemoTasksToAdd += [PSCustomObject]@{
+			ID = $i
 			Name = "Demo Task $i"
 			ParentProjectID = $null
 			ContextID = $ContextSelection
@@ -550,9 +613,55 @@ Function New-TaskTrackingInitiative {
 		}
 	}
 	
+	If ($VerbosePreference -ne 'SilentlyContinue') {
+		$DemoTasksToAdd | Format-Table
+	}
+	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
+	$ContextIDColName = $Contexts[0].ColumnName
 	
+	$ContextValuesToAdd | Format-Table
+	
+	$StatusIDColName = $Status[0].ColumnName
+	
+	$StatusValuesToAdd | Format-Table
+	
+	
+	
+	
+	
+	# Export demo data to data source files, whatever format they may be:
+	$Method = 0
+	switch ($Method) {
+		0 {
+			# CSV
+			
+			$StatusValuesToAdd | Export-Csv -Path -NoTypeInformation
+			
+			$ContextValuesToAdd
+			
+			$DemoTasksToAdd
+			
+		}
+		1 {
+			# XML
+		}
+		2 {
+			# JSON
+		}
+		Default {
+			Write-Error "Data file format choice error."
+		}
+	}
+	
+	
+	
+	$StatusValuesToAdd
+	
+	$ContextValuesToAdd
+	
+	$DemoTasksToAdd
 	
 	
 	
