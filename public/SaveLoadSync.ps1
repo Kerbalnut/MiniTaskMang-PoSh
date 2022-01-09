@@ -944,12 +944,19 @@ Function Get-MyTasks {
 	$Contexts = Import-Csv -Path $ContextsPath
 	$Statuses = Import-Csv -Path $StatusesPath
 	
+	If ($DebugPreference -ne 'SilentlyContinue') {
+		$Tasks | Format-Table
+		$Contexts | Format-Table
+		$Statuses | Format-Table
+	}
+	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
 	
 	#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
 	
+	<#
 	dir -Exclude *.xml $pshome | Format-Table Mode,@{
 		Label = "Name"
 		Expression =
@@ -965,42 +972,27 @@ Function Get-MyTasks {
 		   "$e[${color}m$($_.Name)${e}[0m"
 		}
 	 },Length
+	#>
 	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
-	
-	If ($DebugPreference -ne 'SilentlyContinue') {
-		$Tasks | Format-Table
-		$Contexts | Format-Table
-		$Statuses | Format-Table
-	}
+	<#
+	Write-PSObject $servers -MatchMethod Exact -Column "Manufacture" -Value "HP" -ValueForeColor Yellow -ValueBackColor Red -RowForeColor White -RowBackColor Blue;
+	#>
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	Function ConvertTo-VtColorString($ForeColor,$BackColor) {
-		
-		switch ($_.Extension) {
-			'.exe' { $color = "93"; break }
-			'.ps1xml' { $color = '32'; break }
-			'.dll' { $color = "35"; break }
-			default { $color = "0" }
-		}
-		
-		[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
-		
 		switch ($ForeColor) {
 			'Black' { $fcolor = "30"; break }
 			'Blue' { $fcolor = "34"; break }
 			'Cyan' { $fcolor = "36"; break }
-			'DarkBlue' { $fcolor = "38;"; break }
-			'DarkCyan' { $fcolor = "38;"; break }
-			'DarkGray' { $fcolor = "38;"; break }
-			'DarkGreen' { $fcolor = "38;"; break }
-			'DarkMagenta' { $fcolor = "38;"; break }
-			'DarkRed' { $fcolor = "38;"; break }
-			'DarkYellow' { $fcolor = "38;"; break }
-			'Gray' { $fcolor = "38;"; break }
+			'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
+			'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
+			'DarkGray' { $fcolor = "38;2;128;128;128"; break }
+			'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
+			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
+			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
+			'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
+			'Gray' { $fcolor = "38;2;192;192;192"; break }
 			'Green' { $fcolor = "32"; break }
 			'Magenta' { $fcolor = "35"; break }
 			'Red' { $fcolor = "31"; break }
@@ -1012,57 +1004,33 @@ Function Get-MyTasks {
 				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
 				$fcolor = "39"
 			}
-		}		
-		switch ($ForeColor) {
-			'Black' {}
-			'Blue' {}
-			'Cyan' {}
-			'DarkBlue' {}
-			'DarkCyan' {}
-			'DarkGray' {}
-			'DarkGreen' {}
-			'DarkMagenta' {}
-			'DarkRed' {}
-			'DarkYellow' {}
-			'Gray' {}
-			'Green' {}
-			'Magenta' {}
-			'Red' {}
-			'White' {}
-			'Yellow' {}
-			'.exe' { $fcolor = "93"; break }
+		} # switch
+		switch ($BackColor) {
+			'Black' { $bcolor = "40"; break }
+			'Blue' { $bcolor = "44"; break }
+			'Cyan' { $bcolor = "46"; break }
+			'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
+			'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
+			'DarkGray' { $bcolor = "48;2;128;128;128"; break }
+			'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
+			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
+			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
+			'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
+			'Gray' { $bcolor = "48;2;192;192;192"; break }
+			'Green' { $bcolor = "42"; break }
+			'Magenta' { $bcolor = "45"; break }
+			'Red' { $bcolor = "41"; break }
+			'White' { $bcolor = "47"; break }
+			'Yellow' { $bcolor = "43"; break }
 			Default {
 				#0 	Default 	Returns all attributes to the default state prior to modification
 				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
 				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$fcolor = "39"
+				$bcolor = "49"
 			}
-		}		
-		switch ($ForeColor) {
-			'Black' {}
-			'Blue' {}
-			'Cyan' {}
-			'DarkBlue' {}
-			'DarkCyan' {}
-			'DarkGray' {}
-			'DarkGreen' {}
-			'DarkMagenta' {}
-			'DarkRed' {}
-			'DarkYellow' {}
-			'Gray' {}
-			'Green' {}
-			'Magenta' {}
-			'Red' {}
-			'White' {}
-			'Yellow' {}
-			'.exe' { $fcolor = "93"; break }
-			Default {
-				#0 	Default 	Returns all attributes to the default state prior to modification
-				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$fcolor = "39"
-			}
-		}
+		} # switch
+		$VTColorString = $fcolor + ";" + $bcolor
+		Return $VTColorString
 	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1070,59 +1038,50 @@ Function Get-MyTasks {
 	$Tasks | Format-Table -Property ID, Name, ParentProjectID, @{
 		Label = "ContextID"
 		Expression = {
-			Write-Host "ContextID = $($_.Name)"
-			
 			ForEach ($context in $Contexts) {
 				If ($context.ID -eq ($_.ContextID)) {
 					$ForegroundColorSel = $context.ForeColor
 					$BackgroundColorSel = $context.BackColor
+					$ContextSelName = $context.Name
 				}
 			}
 			
-			switch ($_.Extension) {
-				'.exe' { $color = "93"; break }
-				'.ps1xml' { $color = '32'; break }
-				'.dll' { $color = "35"; break }
-				default { $color = "0" }
-			}
-			$e = [char]27
-			"$e[${color}m$($_.Name)${e}[0m"
-		}
-	}
-	
-	
-	$Tasks | Format-Table -Property ID, Name, ParentProjectID, @{
-		Label = "ContextID"
-		Expression =
-		{
-			Write-Host "ContextID = $($_.ContextID)"
+			$colorstr = ConvertTo-VtColorString -ForeColor $ForegroundColorSel -BackColor $BackgroundColorSel
 			
+			#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+			#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+			# Escape key
+			$e = [char]27
+			# Magic string: VT escape sequences:
+			# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+			#    - 0    Default    Returns all attributes to the default state prior to modification
+			"$e[${colorstr}m$($ContextSelName)${e}[0m"
 		}
-	}
-	
-	
-	
-	
-	
+	}, @{
+		Label = "StatusID"
+		Expression = {
+			ForEach ($status in $Statuses) {
+				If ($status.ID -eq ($_.StatusID)) {
+					$ForegroundColorSel = $status.ForeColor
+					$BackgroundColorSel = $status.BackColor
+					$StatusSelName = $status.Name
+				}
+			}
+			
+			$colorstr = ConvertTo-VtColorString -ForeColor $ForegroundColorSel -BackColor $BackgroundColorSel
+			
+			#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+			#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+			# Escape key
+			$e = [char]27
+			# Magic string: VT escape sequences:
+			# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+			#    - 0    Default    Returns all attributes to the default state prior to modification
+			"$e[${colorstr}m$($StatusSelName)${e}[0m"
+		}
+	}, CreationDate, LastUpdateDate, CompletionDate, DeletionDate
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	Write-PSObject $servers -MatchMethod Exact -Column "Manufacture" -Value "HP" -ValueForeColor Yellow -ValueBackColor Red -RowForeColor White -RowBackColor Blue;
-	
-	Write
-	
-	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	Function Get-HighlightedText($ListObj,$ID) {
-		
-	}
-	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	
-	
-	
 	
 	Return
 } # End of Get-MyTasks function.
