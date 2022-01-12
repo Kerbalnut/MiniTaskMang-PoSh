@@ -120,6 +120,199 @@ Set-Alias -Name 'Get-ColorsList' -Value 'Get-AllPowerShellColors'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
+Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
+	<#
+	.PARAMETER TerminalType
+	-TerminalType "default"
+	-TerminalType "powershell.exe"
+	-TerminalType "Code.exe"
+	-TerminalType "VSCodium.exe"
+	#>
+	Function ConvertTo-DefaultVtColorString($ForeColor,$BackColor) {
+		switch ($ForeColor) {
+			'Black' { $fcolor = "30"; break }
+			'Blue' { $fcolor = "34"; break }
+			'Cyan' { $fcolor = "36"; break }
+			'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
+			'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
+			'DarkGray' { $fcolor = "38;2;128;128;128"; break }
+			'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
+			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
+			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
+			'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
+			'Gray' { $fcolor = "38;2;192;192;192"; break }
+			'Green' { $fcolor = "32"; break }
+			'Magenta' { $fcolor = "35"; break }
+			'Red' { $fcolor = "31"; break }
+			'White' { $fcolor = "37"; break }
+			'Yellow' { $fcolor = "33"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$fcolor = "39"
+			}
+		} # switch
+		switch ($BackColor) {
+			'Black' { $bcolor = "40"; break }
+			'Blue' { $bcolor = "44"; break }
+			'Cyan' { $bcolor = "46"; break }
+			'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
+			'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
+			'DarkGray' { $bcolor = "48;2;128;128;128"; break }
+			'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
+			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
+			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
+			'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
+			'Gray' { $bcolor = "48;2;192;192;192"; break }
+			'Green' { $bcolor = "42"; break }
+			'Magenta' { $bcolor = "45"; break }
+			'Red' { $bcolor = "41"; break }
+			'White' { $bcolor = "47"; break }
+			'Yellow' { $bcolor = "43"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$bcolor = "49"
+			}
+		} # switch
+		$VTColorString = $fcolor + ";" + $bcolor
+		Return $VTColorString
+	} # End ConvertTo-DefaultVtColorString
+	Function ConvertTo-PoshTerminalVtColorString($ForeColor,$BackColor) {
+		switch ($ForeColor) {
+			'Black' { $fcolor = "30"; break }
+			'Blue' { $fcolor = "34"; break }
+			'Cyan' { $fcolor = "36"; break }
+			'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
+			'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
+			'DarkGray' { $fcolor = "38;2;128;128;128"; break }
+			'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
+			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
+			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
+			'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
+			'Gray' { $fcolor = "38;2;192;192;192"; break }
+			'Green' { $fcolor = "32"; break }
+			'Magenta' { $fcolor = "35"; break }
+			'Red' { $fcolor = "31"; break }
+			'White' { $fcolor = "37"; break }
+			'Yellow' { $fcolor = "33"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$fcolor = "39"
+			}
+		} # switch
+		switch ($BackColor) {
+			'Black' { $bcolor = "40"; break }
+			'Blue' { $bcolor = "44"; break }
+			'Cyan' { $bcolor = "46"; break }
+			'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
+			'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
+			'DarkGray' { $bcolor = "48;2;128;128;128"; break }
+			'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
+			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
+			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
+			'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
+			'Gray' { $bcolor = "48;2;192;192;192"; break }
+			'Green' { $bcolor = "42"; break }
+			'Magenta' { $bcolor = "45"; break }
+			'Red' { $bcolor = "41"; break }
+			'White' { $bcolor = "47"; break }
+			'Yellow' { $bcolor = "43"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$bcolor = "49"
+			}
+		} # switch
+		$VTColorString = $fcolor + ";" + $bcolor
+		Return $VTColorString
+	} # End ConvertTo-PoshTerminalVtColorString
+	Function ConvertTo-VscodeVtColorString($ForeColor,$BackColor) {
+		switch ($ForeColor) {
+			'Black' { $fcolor = "30"; break }
+			'Blue' { $fcolor = "34"; break }
+			'Cyan' { $fcolor = "36"; break }
+			'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
+			'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
+			'DarkGray' { $fcolor = "38;2;128;128;128"; break }
+			'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
+			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
+			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
+			'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
+			'Gray' { $fcolor = "38;2;192;192;192"; break }
+			'Green' { $fcolor = "32"; break }
+			'Magenta' { $fcolor = "35"; break }
+			'Red' { $fcolor = "31"; break }
+			'White' { $fcolor = "37"; break }
+			'Yellow' { $fcolor = "33"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$fcolor = "39"
+			}
+		} # switch
+		switch ($BackColor) {
+			'Black' { $bcolor = "40"; break }
+			'Blue' { $bcolor = "44"; break }
+			'Cyan' { $bcolor = "46"; break }
+			'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
+			'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
+			'DarkGray' { $bcolor = "48;2;128;128;128"; break }
+			'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
+			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
+			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
+			'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
+			'Gray' { $bcolor = "48;2;192;192;192"; break }
+			'Green' { $bcolor = "42"; break }
+			'Magenta' { $bcolor = "45"; break }
+			'Red' { $bcolor = "41"; break }
+			'White' { $bcolor = "47"; break }
+			'Yellow' { $bcolor = "43"; break }
+			Default {
+				#0 	Default 	Returns all attributes to the default state prior to modification
+				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+				$bcolor = "49"
+			}
+		} # switch
+		$VTColorString = $fcolor + ";" + $bcolor
+		Return $VTColorString
+	} # End ConvertTo-VscodeVtColorString
+	
+	switch ($TerminalType) {
+		'default' {
+			Write-Verbose "Default colors chosen. (Explicit)"
+			$VTColorString = ConvertTo-DefaultVtColorString -ForeColor $ForeColor -BackColor $BackColor
+		} # 'default'
+		'powershell.exe' {
+			Write-Verbose "powershell.exe terminal colors chosen."
+			$VTColorString = ConvertTo-PoshTerminalVtColorString -ForeColor $ForeColor -BackColor $BackColor
+		} # 'powershell.exe'
+		'Code.exe' {
+			Write-Verbose "vscode (Code.exe) console colors chosen."
+			$VTColorString = ConvertTo-VscodeVtColorString -ForeColor $ForeColor -BackColor $BackColor
+		} # 'Code.exe'
+		'VSCodium.exe' {
+			Write-Verbose "vscode (Code.exe) console colors chosen."
+			$VTColorString = ConvertTo-VscodeVtColorString -ForeColor $ForeColor -BackColor $BackColor
+		} # 'VSCodium.exe'
+		Default {
+			Write-Verbose "Default colors chosen. (Failover)"
+			$VTColorString = ConvertTo-DefaultVtColorString -ForeColor $ForeColor -BackColor $BackColor
+		} # Default
+	} # switch
+	
+	Return $VTColorString
+} # End of ConvertTo-VtColorString function.
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
 Function Get-RandomColorPair {
 	<#
 	.SYNOPSIS
@@ -983,199 +1176,6 @@ Function Get-MyTasks {
 	<#
 	Write-PSObject $servers -MatchMethod Exact -Column "Manufacture" -Value "HP" -ValueForeColor Yellow -ValueBackColor Red -RowForeColor White -RowBackColor Blue;
 	#>
-	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
-		<#
-		.PARAMETER TerminalType
-		-TerminalType "default"
-		-TerminalType "powershell.exe"
-		-TerminalType "Code.exe"
-		-TerminalType "VSCodium.exe"
-		#>
-		Function ConvertTo-DefaultVtColorString($ForeColor,$BackColor) {
-			switch ($ForeColor) {
-				'Black' { $fcolor = "30"; break }
-				'Blue' { $fcolor = "34"; break }
-				'Cyan' { $fcolor = "36"; break }
-				'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
-				'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
-				'DarkGray' { $fcolor = "38;2;128;128;128"; break }
-				'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
-				'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
-				'DarkRed' { $fcolor = "38;2;128;0;0"; break }
-				'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
-				'Gray' { $fcolor = "38;2;192;192;192"; break }
-				'Green' { $fcolor = "32"; break }
-				'Magenta' { $fcolor = "35"; break }
-				'Red' { $fcolor = "31"; break }
-				'White' { $fcolor = "37"; break }
-				'Yellow' { $fcolor = "33"; break }
-				Default {
-					#0 	Default 	Returns all attributes to the default state prior to modification
-					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-					$fcolor = "39"
-				}
-			} # switch
-			switch ($BackColor) {
-				'Black' { $bcolor = "40"; break }
-				'Blue' { $bcolor = "44"; break }
-				'Cyan' { $bcolor = "46"; break }
-				'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
-				'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
-				'DarkGray' { $bcolor = "48;2;128;128;128"; break }
-				'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
-				'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
-				'DarkRed' { $bcolor = "48;2;128;0;0"; break }
-				'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
-				'Gray' { $bcolor = "48;2;192;192;192"; break }
-				'Green' { $bcolor = "42"; break }
-				'Magenta' { $bcolor = "45"; break }
-				'Red' { $bcolor = "41"; break }
-				'White' { $bcolor = "47"; break }
-				'Yellow' { $bcolor = "43"; break }
-				Default {
-					#0 	Default 	Returns all attributes to the default state prior to modification
-					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-					$bcolor = "49"
-				}
-			} # switch
-			$VTColorString = $fcolor + ";" + $bcolor
-			Return $VTColorString
-		} # End ConvertTo-DefaultVtColorString
-		Function ConvertTo-PoshTerminalVtColorString($ForeColor,$BackColor) {
-			switch ($ForeColor) {
-				'Black' { $fcolor = "30"; break }
-				'Blue' { $fcolor = "34"; break }
-				'Cyan' { $fcolor = "36"; break }
-				'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
-				'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
-				'DarkGray' { $fcolor = "38;2;128;128;128"; break }
-				'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
-				'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
-				'DarkRed' { $fcolor = "38;2;128;0;0"; break }
-				'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
-				'Gray' { $fcolor = "38;2;192;192;192"; break }
-				'Green' { $fcolor = "32"; break }
-				'Magenta' { $fcolor = "35"; break }
-				'Red' { $fcolor = "31"; break }
-				'White' { $fcolor = "37"; break }
-				'Yellow' { $fcolor = "33"; break }
-				Default {
-					#0 	Default 	Returns all attributes to the default state prior to modification
-					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-					$fcolor = "39"
-				}
-			} # switch
-			switch ($BackColor) {
-				'Black' { $bcolor = "40"; break }
-				'Blue' { $bcolor = "44"; break }
-				'Cyan' { $bcolor = "46"; break }
-				'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
-				'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
-				'DarkGray' { $bcolor = "48;2;128;128;128"; break }
-				'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
-				'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
-				'DarkRed' { $bcolor = "48;2;128;0;0"; break }
-				'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
-				'Gray' { $bcolor = "48;2;192;192;192"; break }
-				'Green' { $bcolor = "42"; break }
-				'Magenta' { $bcolor = "45"; break }
-				'Red' { $bcolor = "41"; break }
-				'White' { $bcolor = "47"; break }
-				'Yellow' { $bcolor = "43"; break }
-				Default {
-					#0 	Default 	Returns all attributes to the default state prior to modification
-					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-					$bcolor = "49"
-				}
-			} # switch
-			$VTColorString = $fcolor + ";" + $bcolor
-			Return $VTColorString
-		} # End ConvertTo-PoshTerminalVtColorString
-		Function ConvertTo-VscodeVtColorString($ForeColor,$BackColor) {
-			switch ($ForeColor) {
-				'Black' { $fcolor = "30"; break }
-				'Blue' { $fcolor = "34"; break }
-				'Cyan' { $fcolor = "36"; break }
-				'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
-				'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
-				'DarkGray' { $fcolor = "38;2;128;128;128"; break }
-				'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
-				'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
-				'DarkRed' { $fcolor = "38;2;128;0;0"; break }
-				'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
-				'Gray' { $fcolor = "38;2;192;192;192"; break }
-				'Green' { $fcolor = "32"; break }
-				'Magenta' { $fcolor = "35"; break }
-				'Red' { $fcolor = "31"; break }
-				'White' { $fcolor = "37"; break }
-				'Yellow' { $fcolor = "33"; break }
-				Default {
-					#0 	Default 	Returns all attributes to the default state prior to modification
-					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-					$fcolor = "39"
-				}
-			} # switch
-			switch ($BackColor) {
-				'Black' { $bcolor = "40"; break }
-				'Blue' { $bcolor = "44"; break }
-				'Cyan' { $bcolor = "46"; break }
-				'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
-				'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
-				'DarkGray' { $bcolor = "48;2;128;128;128"; break }
-				'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
-				'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
-				'DarkRed' { $bcolor = "48;2;128;0;0"; break }
-				'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
-				'Gray' { $bcolor = "48;2;192;192;192"; break }
-				'Green' { $bcolor = "42"; break }
-				'Magenta' { $bcolor = "45"; break }
-				'Red' { $bcolor = "41"; break }
-				'White' { $bcolor = "47"; break }
-				'Yellow' { $bcolor = "43"; break }
-				Default {
-					#0 	Default 	Returns all attributes to the default state prior to modification
-					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-					$bcolor = "49"
-				}
-			} # switch
-			$VTColorString = $fcolor + ";" + $bcolor
-			Return $VTColorString
-		} # End ConvertTo-VscodeVtColorString
-		
-		switch ($TerminalType) {
-			'default' {
-				Write-Verbose "Default colors chosen. (Explicit)"
-				$VTColorString = ConvertTo-DefaultVtColorString -ForeColor $ForeColor -BackColor $BackColor
-			} # 'default'
-			'powershell.exe' {
-				Write-Verbose "powershell.exe terminal colors chosen."
-				$VTColorString = ConvertTo-PoshTerminalVtColorString -ForeColor $ForeColor -BackColor $BackColor
-			} # 'powershell.exe'
-			'Code.exe' {
-				Write-Verbose "vscode (Code.exe) console colors chosen."
-				$VTColorString = ConvertTo-VscodeVtColorString -ForeColor $ForeColor -BackColor $BackColor
-			} # 'Code.exe'
-			'VSCodium.exe' {
-				Write-Verbose "vscode (Code.exe) console colors chosen."
-				$VTColorString = ConvertTo-VscodeVtColorString -ForeColor $ForeColor -BackColor $BackColor
-			} # 'VSCodium.exe'
-			Default {
-				Write-Verbose "Default colors chosen. (Failover)"
-				$VTColorString = ConvertTo-DefaultVtColorString -ForeColor $ForeColor -BackColor $BackColor
-			} # Default
-		} # switch
-		
-		Return $VTColorString
-	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
