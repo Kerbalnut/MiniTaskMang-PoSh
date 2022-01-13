@@ -88,6 +88,8 @@ Function Get-AllPowerShellColors {
 	Get-AllPowerShellColors -ColorGrid
 	.EXAMPLE
 	Get-AllPowerShellColors -ColorGrid -BlackAndWhite
+	.EXAMPLE
+	Get-AllPowerShellColors -VtColors
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
@@ -111,21 +113,6 @@ Function Get-AllPowerShellColors {
 		[Alias('List','q','l')]
 		[Switch]$Quiet
 	)
-	
-	$Color1  = (ConvertTo-VtColorString -ForeColor 'Red' -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor 'Cyan' -Raw -TerminalType 'Code.exe')
-	$Color2  = (ConvertTo-VtColorString -ForeColor 'Magenta' -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor 'DarkRed' -Raw -TerminalType 'Code.exe')
-	
-	"$e[${$Color1}m$("Hello World")${e}[0m"
-	
-	
-	
-	"$e[${colorstr}m$("       ")${e}[0m"
-	
-	
-	
-	"$e[${colorstr}m$("       ")${e}[0m"
-	
-	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	# Standard output (list of all color names):
 	#$Colors = [enum]::GetValues([System.ConsoleColor])
@@ -149,29 +136,11 @@ Function Get-AllPowerShellColors {
 					
 					$BadVtFontColor = ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe'
 					
-					<#
-					If ($color -eq "DarkMagenta") {
-						$PoShColor    = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'powershell.exe')
-					} ElseIf ($color -eq "DarkYellow") {
-						$PoShColor    = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'powershell.exe')
-					} ElseIf ($color -eq "Gray") {
-						$VsCodeColor  = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'Code.exe')
-					}
-					#>
-					
-					<#
-					If ($color -eq "DarkMagenta") {
-						$PoShColor    = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'powershell.exe')
-					} ElseIf ($color -eq "DarkYellow") {
-						$PoShColor    = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'powershell.exe')
-					} ElseIf ($color -eq "Gray") {
-						$VsCodeColor  = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'Code.exe')
-					}
-					#>
-					
 					$DefaultColor = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'default')
 					$PoShColor    = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'powershell.exe')
 					$VsCodeColor  = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'Code.exe')
+					
+					$DefaultColor = (ConvertTo-VtColorString -ForeColor 'Cyan' -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor 'DarkMagenta' -Raw -TerminalType 'default')
 					
 				} Else {
 					$DefaultColor = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'default')
@@ -285,15 +254,42 @@ Function Get-AllPowerShellColors {
 		} Else {
 			
 			ForEach ($BgColor in $Colors) {
-				If ($BlackAndWhite) {
-					Write-Host "Black|" -ForegroundColor 'Black' -BackgroundColor $BgColor -NoNewLine
-					Write-Host "White|" -ForegroundColor 'White' -BackgroundColor $BgColor -NoNewLine
-				} Else {
+				
+				If ($VtColors) {
+					$VtBgColor = (ConvertTo-VtColorString -BackColor $BgColor -Raw -TerminalType 'default')
 					ForEach ($FgColor in $Colors) {
-						Write-Host "$FgColor|" -ForegroundColor $FgColor -BackgroundColor $BgColor -NoNewLine
+						$VtFgColor = (ConvertTo-VtColorString -ForeColor $FgColor -Raw -TerminalType 'default')
+						$VtColorCode = $VtFgColor + ";" + $VtBgColor
+						Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
 					}
+					Write-Host " on $BgColor (default)"
+					
+					$VtBgColor = (ConvertTo-VtColorString -BackColor $BgColor -Raw -TerminalType 'powershell.exe')
+					ForEach ($FgColor in $Colors) {
+						$VtFgColor = (ConvertTo-VtColorString -ForeColor $FgColor -Raw -TerminalType 'powershell.exe')
+						$VtColorCode = $VtFgColor + ";" + $VtBgColor
+						Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+					}
+					Write-Host " on $BgColor (powershell.exe)"
+					
+					$VtBgColor = (ConvertTo-VtColorString -BackColor $BgColor -Raw -TerminalType 'Code.exe')
+					ForEach ($FgColor in $Colors) {
+						$VtFgColor = (ConvertTo-VtColorString -ForeColor $FgColor -Raw -TerminalType 'Code.exe')
+						$VtColorCode = $VtFgColor + ";" + $VtBgColor
+						Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+					}
+					Write-Host " on $BgColor (Code.exe)"
+				} Else {
+					If ($BlackAndWhite) {
+						Write-Host "Black|" -ForegroundColor 'Black' -BackgroundColor $BgColor -NoNewLine
+						Write-Host "White|" -ForegroundColor 'White' -BackgroundColor $BgColor -NoNewLine
+					} Else {
+						ForEach ($FgColor in $Colors) {
+							Write-Host "$FgColor|" -ForegroundColor $FgColor -BackgroundColor $BgColor -NoNewLine
+						}
+					}
+					If (!($Grid)) {Write-Host " on $BgColor"} Else {Write-Host ""}
 				}
-				If (!($Grid)) {Write-Host " on $BgColor"} Else {Write-Host ""}
 			}
 			
 		} # End If/then/else
