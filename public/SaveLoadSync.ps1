@@ -83,11 +83,9 @@ Function Get-AllPowerShellColors {
 	
 	Returns number of available PowerShell colors.
 	.EXAMPLE
-	[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
-	
-	Returns list of available named PowerShell colors, in alphabetical order.
-	.EXAMPLE
 	Get-AllPowerShellColors -Grid -Quiet
+	.EXAMPLE
+	Get-AllPowerShellColors -ColorGrid
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
@@ -105,24 +103,106 @@ Function Get-AllPowerShellColors {
 		[Alias('vt')]
 		[Switch]$VtColors,
 		
+		[Alias('cgrid','ColorExampleGrid','VtColorGrid')]
+		[Switch]$ColorGrid,
+		
 		[Alias('List','q','l')]
 		[Switch]$Quiet
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	$Colors = [enum]::GetValues([System.ConsoleColor])
+	# Standard output (list of all color names):
+	#$Colors = [enum]::GetValues([System.ConsoleColor])
+	# Alphabetic output:
+	$Colors = [string[]]([enum]::GetValues([System.ConsoleColor])) | Sort-Object
 	If (!($Quiet)) {
-		Foreach ($BgColor in $Colors) {
-			If ($BlackAndWhite) {
-				Write-Host "Black|" -ForegroundColor 'Black' -BackgroundColor $BgColor -NoNewLine
-				Write-Host "White" -ForegroundColor 'White' -BackgroundColor $BgColor -NoNewLine
-			} Else {
-				Foreach ($FgColor in $Colors) {
-					Write-Host "$FgColor|" -ForegroundColor $FgColor -BackgroundColor $BgColor -NoNewLine
-				}
+		
+		If ($ColorGrid) {
+			
+			$GridObj = @()
+			
+			ForEach ($color in $Colors) {
+				$BackColor = $color
+				$BadColor = "Red"
+				$DefaultColor = ConvertTo-VtColorString -ForeColor $BackColor -BackColor $BackColor -Raw -TerminalType 'default'
+				$PoShColor    = ConvertTo-VtColorString -ForeColor $BackColor -BackColor $BackColor -Raw -TerminalType 'powershell.exe'
+				$VsCodeColor  = ConvertTo-VtColorString -ForeColor $BackColor -BackColor $BackColor -Raw -TerminalType 'Code.exe'
+				
+				$GridObj += [PSCustomObject]@{Default = $DefaultColor; PoSh = $PoShColor; VsCode = $VsCodeColor; ColorName = " on $BackColor"}
 			}
-			If (!($Grid)) {Write-Host " on $BgColor"} Else {Write-Host ""}
-		}
-	}
+			
+			$GridObj | Format-Table -Property @{
+				Label = "Default"
+				Expression = {
+					$colorstr = $_.Default
+					#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+					#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+					# Escape key
+					$e = [char]27
+					# Magic string: VT escape sequences:
+					# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+					#    - 0    Default    Returns all attributes to the default state prior to modification
+					"$e[${colorstr}m$("       ")${e}[0m"
+				}
+			}, @{
+				Label = "PoSh"
+				Expression = {
+					$colorstr = $_.PoSh
+					$colorstr = $_.PoSh
+					#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+					#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+					# Escape key
+					$e = [char]27
+					# Magic string: VT escape sequences:
+					# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+					#    - 0    Default    Returns all attributes to the default state prior to modification
+					"$e[${colorstr}m$("       ")${e}[0m"
+					
+					If ($_.ColorName -eq " on DarkMagenta" -Or $_.ColorName -eq " on DarkYellow") {
+						$colorstr = $_.PoSh
+						"$e[${colorstr}m$("???????")${e}[0m"
+					} Else {
+						$colorstr = $_.PoSh
+						"$e[${colorstr}m$("       ")${e}[0m"
+					}
+					
+					
+					
+					"$e[${colorstr}m$("       ")${e}[0m"
+					
+					
+				}
+			}, @{
+				Label = "VsCode"
+				Expression = {
+					$colorstr = $_.VsCode
+					#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+					#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+					# Escape key
+					$e = [char]27
+					# Magic string: VT escape sequences:
+					# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+					#    - 0    Default    Returns all attributes to the default state prior to modification
+					"$e[${colorstr}m$("       ")${e}[0m"
+				}
+			}, ColorName
+			
+			# End If $ColorGrid
+		} Else {
+			
+			ForEach ($BgColor in $Colors) {
+				If ($BlackAndWhite) {
+					Write-Host "Black|" -ForegroundColor 'Black' -BackgroundColor $BgColor -NoNewLine
+					Write-Host "White|" -ForegroundColor 'White' -BackgroundColor $BgColor -NoNewLine
+				} Else {
+					ForEach ($FgColor in $Colors) {
+						Write-Host "$FgColor|" -ForegroundColor $FgColor -BackgroundColor $BgColor -NoNewLine
+					}
+				}
+				If (!($Grid)) {Write-Host " on $BgColor"} Else {Write-Host ""}
+			}
+			
+		} # End If/then/else
+	} # End If not $Quiet
 	If ($Quiet) {Return $Colors}
 } # End of Get-AllPowerShellColors function.
 Set-Alias -Name 'Get-AllColors' -Value 'Get-AllPowerShellColors'
@@ -131,7 +211,7 @@ Set-Alias -Name 'Get-ColorsList' -Value 'Get-AllPowerShellColors'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
-Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
+Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Raw) {
 	<#
 	.PARAMETER TerminalType
 	-TerminalType "default"
@@ -141,55 +221,67 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
 	#>
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Function ConvertTo-DefaultVtColorString($ForeColor,$BackColor) {
-		switch ($ForeColor) {
-			'Black' { $fcolor = "30"; break }
-			'Blue' { $fcolor = "34"; break }
-			'Cyan' { $fcolor = "36"; break }
-			'DarkBlue' { $fcolor = "38;2;0;0;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkCyan' { $fcolor = "38;2;0;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkGray' { $fcolor = "38;2;128;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkGreen' { $fcolor = "38;2;0;128;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break } # Standard in posh terminal broken: taken from vscode colors
-			'DarkRed' { $fcolor = "38;2;128;0;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkYellow' { $fcolor = "38;2;229;229;16"; break } # Standard in posh terminal broken: taken from vscode colors
-			'Gray' { $fcolor = "38;2;192;192;192"; break } # Standard in vscode console broken: taken from powershell.exe terminal colors
-			'Green' { $fcolor = "32"; break }
-			'Magenta' { $fcolor = "35"; break }
-			'Red' { $fcolor = "31"; break }
-			'White' { $fcolor = "37"; break }
-			'Yellow' { $fcolor = "33"; break }
-			Default {
-				#0 	Default 	Returns all attributes to the default state prior to modification
-				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$fcolor = "39"
+		If ($ForeColor) {
+			switch ($ForeColor) {
+				'Black' { $fcolor = "30"; break }
+				'Blue' { $fcolor = "34"; break }
+				'Cyan' { $fcolor = "36"; break }
+				'DarkBlue' { $fcolor = "38;2;0;0;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkCyan' { $fcolor = "38;2;0;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkGray' { $fcolor = "38;2;128;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkGreen' { $fcolor = "38;2;0;128;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkMagenta' { $fcolor = "38;2;188;63;188"; break } # Standard in posh terminal broken: taken from vscode colors
+				'DarkRed' { $fcolor = "38;2;128;0;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkYellow' { $fcolor = "38;2;229;229;16"; break } # Standard in posh terminal broken: taken from vscode colors
+				'Gray' { $fcolor = "38;2;192;192;192"; break } # Standard in vscode console broken: taken from powershell.exe terminal colors
+				'Green' { $fcolor = "32"; break }
+				'Magenta' { $fcolor = "35"; break }
+				'Red' { $fcolor = "31"; break }
+				'White' { $fcolor = "37"; break }
+				'Yellow' { $fcolor = "33"; break }
+				Default {
+					#0 	Default 	Returns all attributes to the default state prior to modification
+					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+					$fcolor = "39"
+				}
+			} # switch
+		}
+		If ($BackColor) {
+			switch ($BackColor) {
+				'Black' { $bcolor = "40"; break }
+				'Blue' { $bcolor = "44"; break }
+				'Cyan' { $bcolor = "46"; break }
+				'DarkBlue' { $bcolor = "48;2;0;0;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkCyan' { $bcolor = "48;2;0;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkGray' { $bcolor = "48;2;128;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkGreen' { $bcolor = "48;2;0;128;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkMagenta' { $bcolor = "48;2;188;63;188"; break } # Standard in posh terminal broken: taken from vscode colors
+				'DarkRed' { $bcolor = "48;2;128;0;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
+				'DarkYellow' { $bcolor = "48;2;229;229;16"; break } # Standard in posh terminal broken: taken from vscode colors
+				'Gray' { $bcolor = "48;2;192;192;192"; break } # Standard in vscode console broken: taken from powershell.exe terminal colors
+				'Green' { $bcolor = "42"; break }
+				'Magenta' { $bcolor = "45"; break }
+				'Red' { $bcolor = "41"; break }
+				'White' { $bcolor = "47"; break }
+				'Yellow' { $bcolor = "43"; break }
+				Default {
+					#0 	Default 	Returns all attributes to the default state prior to modification
+					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+					$bcolor = "49"
+				}
+			} # switch
+		}
+		If ($ForeColor -And $BackColor) {
+			$VTColorString = $fcolor + ";" + $bcolor
+		} Else {
+			If ($ForeColor) {
+				$VTColorString = $fcolor
+			} ElseIf ($BackColor) {
+				$VTColorString = $bcolor
 			}
-		} # switch
-		switch ($BackColor) {
-			'Black' { $bcolor = "40"; break }
-			'Blue' { $bcolor = "44"; break }
-			'Cyan' { $bcolor = "46"; break }
-			'DarkBlue' { $bcolor = "48;2;0;0;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkCyan' { $bcolor = "48;2;0;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkGray' { $bcolor = "48;2;128;128;128"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkGreen' { $bcolor = "48;2;0;128;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break } # Standard in posh terminal broken: taken from vscode colors
-			'DarkRed' { $bcolor = "48;2;128;0;0"; break } # No analog to standardized vt colors: taken from powershell.exe terminal colors
-			'DarkYellow' { $bcolor = "48;2;229;229;16"; break } # Standard in posh terminal broken: taken from vscode colors
-			'Gray' { $bcolor = "48;2;192;192;192"; break } # Standard in vscode console broken: taken from powershell.exe terminal colors
-			'Green' { $bcolor = "42"; break }
-			'Magenta' { $bcolor = "45"; break }
-			'Red' { $bcolor = "41"; break }
-			'White' { $bcolor = "47"; break }
-			'Yellow' { $bcolor = "43"; break }
-			Default {
-				#0 	Default 	Returns all attributes to the default state prior to modification
-				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$bcolor = "49"
-			}
-		} # switch
-		$VTColorString = $fcolor + ";" + $bcolor
+		}
 		Return $VTColorString
 	} # End ConvertTo-DefaultVtColorString
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -202,11 +294,21 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
 			'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
 			'DarkGray' { $fcolor = "38;2;128;128;128"; break }
 			'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
-			#'DarkMagenta' { $fcolor = "38;2;1;36;86"; break } # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
-			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break } # taken from vscode colors
+			'DarkMagenta' {
+				If ($Raw) {
+					$fcolor = "38;2;1;36;86"; break # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
+				} Else {
+					$fcolor = "38;2;188;63;188"; break # taken from vscode colors
+				}
+			}
 			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
-			#'DarkYellow' { $fcolor = "38;2;238;237;240"; break } # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
-			'DarkYellow' { $fcolor = "38;2;229;229;16"; break } # taken from vscode colors
+			'DarkYellow' {
+				If ($Raw) {
+					$fcolor = "38;2;238;237;240"; break # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
+				} Else {
+					$fcolor = "38;2;229;229;16"; break # taken from vscode colors
+				}
+			}
 			'Gray' { $fcolor = "38;2;192;192;192"; break }
 			'Green' { $fcolor = "38;2;0;255;0"; break }
 			'Magenta' { $fcolor = "38;2;255;0;255"; break }
@@ -228,11 +330,21 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
 			'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
 			'DarkGray' { $bcolor = "48;2;128;128;128"; break }
 			'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
-			#'DarkMagenta' { $bcolor = "48;2;1;36;86"; break } # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
-			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break } # taken from vscode colors
+			'DarkMagenta' {
+				If ($Raw) {
+					$bcolor = "48;2;1;36;86"; break # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
+				} Else {
+					$bcolor = "48;2;188;63;188"; break # taken from vscode colors
+				}
+			}
 			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
-			#'DarkYellow' { $bcolor = "48;2;238;237;240"; break } # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
-			'DarkYellow' { $bcolor = "48;2;229;229;16"; break } # taken from vscode colors
+			'DarkYellow' {
+				If ($Raw) {
+					$bcolor = "48;2;238;237;240"; break # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
+				} Else {
+					$bcolor = "48;2;229;229;16"; break # taken from vscode colors
+				}
+			}
 			'Gray' { $bcolor = "48;2;192;192;192"; break }
 			'Green' { $bcolor = "48;2;0;255;0"; break }
 			'Magenta' { $bcolor = "48;2;255;0;255"; break }
@@ -246,7 +358,15 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
 				$bcolor = "49"
 			}
 		} # switch
-		$VTColorString = $fcolor + ";" + $bcolor
+		If ($ForeColor -And $BackColor) {
+			$VTColorString = $fcolor + ";" + $bcolor
+		} Else {
+			If ($ForeColor) {
+				$VTColorString = $fcolor
+			} ElseIf ($BackColor) {
+				$VTColorString = $bcolor
+			}
+		}
 		Return $VTColorString
 	} # End ConvertTo-PoshTerminalVtColorString
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -262,8 +382,13 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
 			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
 			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
 			'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
-			#'Gray' { $fcolor = "38;2;229;229;229"; break } # Standard, (broken): appears exact same as vscode white
-			'Gray' { $fcolor = "38;2;192;192;192"; break } # taken from powershell.exe terminal colors
+			'Gray' {
+				If ($Raw) {
+					$fcolor = "38;2;229;229;229"; break # Standard, (broken): appears exact same as vscode white
+				} Else {
+					$fcolor = "38;2;192;192;192"; break # taken from powershell.exe terminal colors
+				}
+			}
 			'Green' { $fcolor = "38;2;35;209;139"; break }
 			'Magenta' { $fcolor = "38;2;214;112;214"; break }
 			'Red' { $fcolor = "38;2;241;76;76"; break }
@@ -287,8 +412,13 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
 			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
 			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
 			'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
-			#'Gray' { $bcolor = "48;2;229;229;229"; break } # Standard, (broken): appears exact same as vscode white
-			'Gray' { $bcolor = "48;2;192;192;192"; break } # taken from powershell.exe terminal colors
+			'Gray' {
+				If ($Raw) {
+					$bcolor = "48;2;229;229;229"; break # Standard, (broken): appears exact same as vscode white
+				} Else {
+					$bcolor = "48;2;192;192;192"; break # taken from powershell.exe terminal colors
+				}
+			}
 			'Green' { $bcolor = "48;2;35;209;139"; break }
 			'Magenta' { $bcolor = "48;2;214;112;214"; break }
 			'Red' { $bcolor = "48;2;241;76;76"; break }
@@ -301,7 +431,15 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType) {
 				$bcolor = "49"
 			}
 		} # switch
-		$VTColorString = $fcolor + ";" + $bcolor
+		If ($ForeColor -And $BackColor) {
+			$VTColorString = $fcolor + ";" + $bcolor
+		} Else {
+			If ($ForeColor) {
+				$VTColorString = $fcolor
+			} ElseIf ($BackColor) {
+				$VTColorString = $bcolor
+			}
+		}
 		Return $VTColorString
 	} # End ConvertTo-VscodeVtColorString
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1145,6 +1283,8 @@ Function Get-MyTasks {
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	$TerminalType = $TerminalTypeColors
+	
+	#$ProjectPath = "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
 	
 	#$ProjectPath = $Path
 	$TasksTableName = "Tasks"
