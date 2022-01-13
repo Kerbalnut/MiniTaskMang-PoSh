@@ -87,11 +87,15 @@ Function Get-AllPowerShellColors {
 	
 	Returns list of available named PowerShell colors, in alphabetical order.
 	.EXAMPLE
-	Get-AllPowerShellColors -Grid -Quiet
+	Get-AllPowerShellColors -Quiet -Alphabetic:$False
+	
+	Do not produce alphabetic output.
 	.EXAMPLE
 	Get-AllPowerShellColors -ColorGrid
 	.EXAMPLE
 	Get-AllPowerShellColors -ColorGrid -BlackAndWhite
+	.EXAMPLE
+	Get-AllPowerShellColors -List
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors
 	.EXAMPLE
@@ -614,26 +618,34 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 		Return $VTColorString
 	} # End ConvertTo-VscodeVtColorString
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$SubFunctionParams = @{}
+	If ($ForeColor) {
+		$SubFunctionParams += @{ForeColor = $ForeColor}
+	}
+	If ($BackColor) {
+		$SubFunctionParams += @{BackColor = $BackColor}
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	switch ($TerminalType) {
 		'default' {
 			Write-Verbose "Default colors chosen. (Explicit)"
-			$VTColorString = ConvertTo-DefaultVtColorString -ForeColor $ForeColor -BackColor $BackColor
+			$VTColorString = ConvertTo-DefaultVtColorString @SubFunctionParams
 		} # 'default'
 		'powershell.exe' {
 			Write-Verbose "powershell.exe terminal colors chosen."
-			$VTColorString = ConvertTo-PoshTerminalVtColorString -ForeColor $ForeColor -BackColor $BackColor
+			$VTColorString = ConvertTo-PoshTerminalVtColorString @SubFunctionParams
 		} # 'powershell.exe'
 		'Code.exe' {
 			Write-Verbose "vscode (Code.exe) console colors chosen."
-			$VTColorString = ConvertTo-VscodeVtColorString -ForeColor $ForeColor -BackColor $BackColor
+			$VTColorString = ConvertTo-VscodeVtColorString @SubFunctionParams
 		} # 'Code.exe'
 		'VSCodium.exe' {
 			Write-Verbose "vscode (Code.exe) console colors chosen."
-			$VTColorString = ConvertTo-VscodeVtColorString -ForeColor $ForeColor -BackColor $BackColor
+			$VTColorString = ConvertTo-VscodeVtColorString @SubFunctionParams
 		} # 'VSCodium.exe'
 		Default {
 			Write-Verbose "Default colors chosen. (Failover)"
-			$VTColorString = ConvertTo-DefaultVtColorString -ForeColor $ForeColor -BackColor $BackColor
+			$VTColorString = ConvertTo-DefaultVtColorString @SubFunctionParams
 		} # Default
 	} # switch
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
