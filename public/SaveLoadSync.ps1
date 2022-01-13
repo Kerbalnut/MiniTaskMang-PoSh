@@ -83,6 +83,10 @@ Function Get-AllPowerShellColors {
 	
 	Returns number of available PowerShell colors.
 	.EXAMPLE
+	[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
+	
+	Returns list of available named PowerShell colors, in alphabetical order.
+	.EXAMPLE
 	Get-AllPowerShellColors -Grid -Quiet
 	.EXAMPLE
 	Get-AllPowerShellColors -ColorGrid
@@ -90,6 +94,8 @@ Function Get-AllPowerShellColors {
 	Get-AllPowerShellColors -ColorGrid -BlackAndWhite
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors
+	.EXAMPLE
+	Get-AllPowerShellColors -VtColors -Grid
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
@@ -111,13 +117,18 @@ Function Get-AllPowerShellColors {
 		[Switch]$ColorGrid,
 		
 		[Alias('List','q','l')]
-		[Switch]$Quiet
+		[Switch]$Quiet,
+		
+		[Switch]$Alphabetic = $True
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	# Standard output (list of all color names):
-	#$Colors = [enum]::GetValues([System.ConsoleColor])
-	# Alphabetic output:
-	$Colors = [string[]]([enum]::GetValues([System.ConsoleColor])) | Sort-Object
+	If (!($Alphabetic)) {
+		# Standard output (list of all color names):
+		$Colors = [enum]::GetValues([System.ConsoleColor])
+	} Else {
+		# Alphabetic output:
+		$Colors = [string[]]([enum]::GetValues([System.ConsoleColor])) | Sort-Object
+	}
 	If ($BlackAndWhite) {
 		$PureBlackVtFontColor = ConvertTo-VtColorString -ForeColor "Black" -TerminalType 'powershell.exe'
 		$PureWhiteVtFontColor = ConvertTo-VtColorString -ForeColor "White" -TerminalType 'powershell.exe'
@@ -133,15 +144,11 @@ Function Get-AllPowerShellColors {
 				$BadColor = "Red"
 				
 				If ($BlackAndWhite) {
-					
 					$BadVtFontColor = ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe'
 					
 					$DefaultColor = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'default')
 					$PoShColor    = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'powershell.exe')
 					$VsCodeColor  = (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'Code.exe')
-					
-					$DefaultColor = (ConvertTo-VtColorString -ForeColor 'Cyan' -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor 'DarkMagenta' -Raw -TerminalType 'default')
-					
 				} Else {
 					$DefaultColor = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'default')
 					$PoShColor    = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'powershell.exe')
@@ -158,7 +165,7 @@ Function Get-AllPowerShellColors {
 					$ColorError = ""
 				}
 				
-				$GridObj += [PSCustomObject]@{Default = $DefaultColor; PoSh = $PoShColor; VsCode = $VsCodeColor; ColorName = " on $BackColor"; Error = $ColorError}
+				$GridObj += [PSCustomObject]@{Default = $DefaultColor; PoSh = $PoShColor; VsCode = $VsCodeColor; ColorName = " on $BackColor"; ColorError = $ColorError}
 			}
 			
 			#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -247,38 +254,87 @@ Function Get-AllPowerShellColors {
 						}
 					}
 				}
-			}, ColorName, Error
+			}, ColorName, ColorError
 			
 			# End If $ColorGrid
 			#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 		} Else {
 			
+			If ($VtColors -And ($Grid -Or $ColorGrid)) {
+				$ResultsArray = @()
+			}
+			
 			ForEach ($BgColor in $Colors) {
 				
 				If ($VtColors) {
 					$VtBgColor = (ConvertTo-VtColorString -BackColor $BgColor -Raw -TerminalType 'default')
+					
+					If ($Grid) {
+						$ColorExamples = ""
+						
+					}
+					
 					ForEach ($FgColor in $Colors) {
 						$VtFgColor = (ConvertTo-VtColorString -ForeColor $FgColor -Raw -TerminalType 'default')
 						$VtColorCode = $VtFgColor + ";" + $VtBgColor
-						Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+						If ($Grid) {
+							$ColorExamples = $ColorExamples + "$e[${VtColorCode}m$("$FgColor|")${e}[0m"
+						} Else {
+							Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+						}
 					}
-					Write-Host " on $BgColor (default)"
+					If ($Grid) {
+						$ResultsArray += [PSCustomObject]@{ColorExamples = $ColorExamples; ColorName = " on $BgColor"; VtColorType = "default"; ColorError = ""}
+					} Else {
+						Write-Host " on $BgColor (default)"
+					}
 					
-					$VtBgColor = (ConvertTo-VtColorString -BackColor $BgColor -Raw -TerminalType 'powershell.exe')
 					ForEach ($FgColor in $Colors) {
 						$VtFgColor = (ConvertTo-VtColorString -ForeColor $FgColor -Raw -TerminalType 'powershell.exe')
 						$VtColorCode = $VtFgColor + ";" + $VtBgColor
-						Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+						If ($Grid) {
+							$ColorExamples = $ColorExamples + "$e[${VtColorCode}m$("$FgColor|")${e}[0m"
+						} Else {
+							Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+						}
 					}
-					Write-Host " on $BgColor (powershell.exe)"
+					If ($Grid) {
+						If ($BgColor -eq 'DarkMagenta') {
+							$ColorError = "(PoSh error: appears as blue powershell terminal background)"
+							$ResultsArray += [PSCustomObject]@{ColorExamples = $ColorExamples; ColorName = " on $BgColor"; VtColorType = "powershell.exe"; ColorError = $ColorError}
+						} ElseIf ($BgColor -eq 'DarkYellow') {
+							$ColorError = "(PoSh error: appears as a lighter gray than 'Gray', almost white but not quite)"
+							$ResultsArray += [PSCustomObject]@{ColorExamples = $ColorExamples; ColorName = " on $BgColor"; VtColorType = "powershell.exe"; ColorError = $ColorError}
+						} Else {
+							$ResultsArray += [PSCustomObject]@{ColorExamples = $ColorExamples; ColorName = " on $BgColor"; VtColorType = "powershell.exe"; ColorError = ""}
+						}
+					} Else {
+						Write-Host " on $BgColor (powershell.exe)"
+					}
 					
 					$VtBgColor = (ConvertTo-VtColorString -BackColor $BgColor -Raw -TerminalType 'Code.exe')
 					ForEach ($FgColor in $Colors) {
 						$VtFgColor = (ConvertTo-VtColorString -ForeColor $FgColor -Raw -TerminalType 'Code.exe')
 						$VtColorCode = $VtFgColor + ";" + $VtBgColor
-						Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+						If ($Grid) {
+							$ColorExamples = $ColorExamples + "$e[${VtColorCode}m$("$FgColor|")${e}[0m"
+						} Else {
+							Write-Host "$e[${VtColorCode}m$("$FgColor|")${e}[0m" -NoNewLine
+						}
 					}
-					Write-Host " on $BgColor (Code.exe)"
+					If ($Grid) {
+						If ($BgColor -eq 'Gray') {
+							$ColorError = "(VsCode error: appears exact same as vscode white)"
+							$ResultsArray += [PSCustomObject]@{ColorExamples = $ColorExamples; ColorName = " on $BgColor"; VtColorType = "Code.exe"; ColorError = $ColorError}
+						} Else {
+							$ResultsArray += [PSCustomObject]@{ColorExamples = $ColorExamples; ColorName = " on $BgColor"; VtColorType = "Code.exe"; ColorError = ""}
+						}
+					} Else {
+						Write-Host " on $BgColor (Code.exe)"
+					}
+					
+					
+					# If $VtColors
 				} Else {
 					If ($BlackAndWhite) {
 						Write-Host "Black|" -ForegroundColor 'Black' -BackgroundColor $BgColor -NoNewLine
@@ -290,9 +346,48 @@ Function Get-AllPowerShellColors {
 					}
 					If (!($Grid)) {Write-Host " on $BgColor"} Else {Write-Host ""}
 				}
+			} # ForEach $BgColor
+			
+			<#
+			If ($VtColors -And ($Grid -Or $ColorGrid)) {
+				$ResultsArray = @()
+			}
+			#>
+			
+			If ($VtColors -And $Grid) {
+				
+				$ResultsArray | Format-Table -Property ColorExamples, ColorName, VtColorType, ColorError -AutoSize
+				
+				$ResultsArray | Format-Table -Property ColorExamples, ColorName, VtColorType, ColorError -AutoSize | Out-Host
+				
+				$ResultsArray | Format-Table -Property ColorExamples, ColorName, VtColorType, ColorError | Out-Host
+				
+				#
+				$ResultsArray | Format-Table -Property @{
+					Label = "ColorExamples"
+					Expression = {
+						$colorstr = $_.ColorExamples
+						#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+						#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+						# Escape key
+						$e = [char]27
+						# Magic string: VT escape sequences:
+						# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+						#    - 0    Default    Returns all attributes to the default state prior to modification
+						"$e[${colorstr}m$("       ")${e}[0m"
+					}
+				}, ColorName, VtColorType, ColorError
+				#>
+				
+			} ElseIf ($VtColors -And $ColorGrid) {
+				
+				
 			}
 			
-		} # End If/then/else
+			
+			
+			
+		} # End If/then/else $ColorGrid
 	} # End If not $Quiet
 	If ($Quiet) {Return $Colors}
 } # End of Get-AllPowerShellColors function.
