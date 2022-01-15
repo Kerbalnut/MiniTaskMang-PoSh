@@ -71,14 +71,6 @@ Function Get-AllPowerShellColors {
 	.PARAMETER Quiet
 	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce output.
 	.EXAMPLE
-	Get-AllPowerShellColors -Grid
-	
-	Prints to console a list of every powershell color applied in every variety of Foreground color and Background color combination. Traditionally, there are 16 available colors, so this switch generates a nice-looking grid on standard-width PowerShell terminal.
-	.EXAMPLE
-	Get-AllPowerShellColors -List
-	
-	Returns list of available named PowerShell colors. -List is an alias for parameter -Quiet.
-	.EXAMPLE
 	(Get-AllPowerShellColors -Quiet).Count
 	
 	Returns number of available PowerShell colors.
@@ -91,17 +83,25 @@ Function Get-AllPowerShellColors {
 	
 	Do not produce alphabetic output.
 	.EXAMPLE
+	Get-AllPowerShellColors -List
+	
+	Returns list of available named PowerShell colors. -List is an alias for parameter -Quiet.
+	.EXAMPLE
+	Get-AllPowerShellColors -Grid
+	
+	Prints to console a list of every powershell color applied in every variety of Foreground color and Background color combination. Traditionally, there are 16 available colors, so this switch generates a nice-looking grid on standard-width PowerShell terminal.
+	.EXAMPLE
 	Get-AllPowerShellColors -ColorGrid
 	.EXAMPLE
 	Get-AllPowerShellColors -ColorGrid -BlackAndWhite
-	.EXAMPLE
-	Get-AllPowerShellColors -List
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors -Grid
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors -ColorGrid
+	.EXAMPLE
+	Get-AllPowerShellColors -VtColors -List | Format-Table
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
@@ -122,6 +122,8 @@ Function Get-AllPowerShellColors {
 		[Alias('cgrid','ColorExampleGrid','VtColorGrid')]
 		[Switch]$ColorGrid,
 		
+		[Switch]$NoLabels,
+		
 		[Alias('List','q','l')]
 		[Switch]$Quiet,
 		
@@ -139,7 +141,34 @@ Function Get-AllPowerShellColors {
 		$PureBlackVtFontColor = ConvertTo-VtColorString -ForeColor "Black" -TerminalType 'powershell.exe'
 		$PureWhiteVtFontColor = ConvertTo-VtColorString -ForeColor "White" -TerminalType 'powershell.exe'
 	}
-	If (!($Quiet)) {
+	If ($Quiet -And $VtColors) {
+		
+		$VtColorCodeArray = @()
+		
+		ForEach ($color in $Colors) {
+			$DefaultForeColor = (ConvertTo-VtColorString -ForeColor $color -Raw -TerminalType 'default')
+			$PoShForeColor    = (ConvertTo-VtColorString -ForeColor $color -Raw -TerminalType 'powershell.exe')
+			$VsCodeForeColor  = (ConvertTo-VtColorString -ForeColor $color -Raw -TerminalType 'Code.exe')
+			
+			$DefaultBackColor = (ConvertTo-VtColorString -BackColor $color -Raw -TerminalType 'default')
+			$PoShBackColor    = (ConvertTo-VtColorString -BackColor $color -Raw -TerminalType 'powershell.exe')
+			$VsCodeBackColor  = (ConvertTo-VtColorString -BackColor $color -Raw -TerminalType 'Code.exe')
+			
+			$VtColorCodeArray += [PSCustomObject]@{
+				Color = $color; 
+				DefaultForeColor = $DefaultForeColor; 
+				DefaultBackColor = $DefaultBackColor; 
+				PoShForeColor = $PoShForeColor; 
+				PoShBackColor = $PoShBackColor; 
+				VsCodeForeColor = $VsCodeForeColor; 
+				VsCodeBackColor = $VsCodeBackColor
+			}
+			
+		}
+		
+		Return $VtColorCodeArray
+		
+	} ElseIf (!($Quiet)) {
 		
 		If ($ColorGrid -And !($VtColors)) {
 			
@@ -161,12 +190,17 @@ Function Get-AllPowerShellColors {
 					$VsCodeColor  = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor $BackColor -Raw -TerminalType 'Code.exe')
 				}
 				
+				$BadTextColor = (ConvertTo-VtColorString -ForeColor $BadColor -TerminalType 'powershell.exe') + ";" + (ConvertTo-VtColorString -BackColor 'Black' -Raw -TerminalType 'Code.exe')
+				
 				If ($color -eq "DarkMagenta") {
 					$ColorError = "(PoSh error: appears as blue powershell terminal background)"
+					$ColorError = "$e[${BadTextColor}m$("$ColorError")${e}[0m"
 				} ElseIf ($color -eq "DarkYellow") {
 					$ColorError = "(PoSh error: appears as a lighter gray than 'Gray', almost white but not quite)"
+					$ColorError = "$e[${BadTextColor}m$("$ColorError")${e}[0m"
 				} ElseIf ($color -eq "Gray") {
 					$ColorError = "(VsCode error: appears exact same as vscode white)"
+					$ColorError = "$e[${BadTextColor}m$("$ColorError")${e}[0m"
 				} Else {
 					$ColorError = ""
 				}
@@ -376,8 +410,12 @@ Function Get-AllPowerShellColors {
 			
 			
 			
+			
 		} # End If/then/else $ColorGrid
 	} # End If not $Quiet
+	If ($Quiet -And $BlackAndWhite) {
+		$Colors = $Colors | Where-Object {$_ -match "Black|White"}
+	}
 	If ($Quiet) {Return $Colors}
 } # End of Get-AllPowerShellColors function.
 Set-Alias -Name 'Get-AllColors' -Value 'Get-AllPowerShellColors'
