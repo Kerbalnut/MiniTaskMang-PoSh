@@ -85,7 +85,13 @@ Function Get-AllPowerShellColors {
 	.EXAMPLE
 	Get-AllPowerShellColors -List
 	
-	Returns list of available named PowerShell colors. -List is an alias for parameter -Quiet.
+	
+	.EXAMPLE
+	Get-AllPowerShellColors -ColorList
+	
+	
+	
+	
 	.EXAMPLE
 	Get-AllPowerShellColors -Grid
 	
@@ -108,23 +114,29 @@ Function Get-AllPowerShellColors {
 	#>
 	[Alias("Get-AllColors","Get-Colors","Get-ColorsList")]
 	#Requires -Version 3
-	[CmdletBinding()]
+	[CmdletBinding(DefaultParameterSetName = "ColorList")]
 	Param(
-		[Alias('ShowExamples','Show','Examples')]
-		[Switch]$Grid,
+		[Parameter(ParameterSetName = "ColorList")]
+		[Alias('List','l','cl')]
+		[Switch]$ColorList,
 		
-		[Alias('bnw','bw')]
-		[Switch]$BlackAndWhite,
+		[Parameter(ParameterSetName = "ColorList")]
+		[Switch]$NoLabels,
+		
+		[Parameter(ParameterSetName = "ColorGrid")]
+		[Alias('Grid','g','cg','ShowExamples','show','examples')]
+		[Switch]$ColorGrid,
+		
+		[Parameter(ParameterSetName = "ColorCompare")]
+		[Switch]$ConsoleColorComparison,
 		
 		[Alias('vt')]
 		[Switch]$VtColors,
 		
-		[Alias('cgrid','ColorExampleGrid','VtColorGrid')]
-		[Switch]$ColorGrid,
+		[Alias('bw','bnw')]
+		[Switch]$BlackAndWhite,
 		
-		[Switch]$NoLabels,
-		
-		[Alias('List','q','l')]
+		[Alias('q')]
 		[Switch]$Quiet,
 		
 		[Switch]$Alphabetic = $True
@@ -1768,10 +1780,16 @@ Function New-TaskTrackingInitiativeTEST {
 		
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$CommonParameters = @{
+		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
+		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Return
-} # End of New-TaskTrackingInitiative function.
+} # End of New-TaskTrackingInitiativeTEST function.
 Set-Alias -Name 'New-ProjectInitTEST' -Value 'New-TaskTrackingInitiativeTEST'
 #-----------------------------------------------------------------------------------------------------------------------
 
