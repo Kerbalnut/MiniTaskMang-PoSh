@@ -2,6 +2,8 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Dependencies:
 
+#Requires -Version 3
+
 #https://github.com/RamblingCookieMonster/PSSQLite
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,14 +86,8 @@ Function Get-AllPowerShellColors {
 	Do not produce alphabetic output.
 	.EXAMPLE
 	Get-AllPowerShellColors -List
-	
-	
 	.EXAMPLE
 	Get-AllPowerShellColors -ColorList
-	
-	
-	
-	
 	.EXAMPLE
 	Get-AllPowerShellColors -Grid
 	
@@ -114,7 +110,7 @@ Function Get-AllPowerShellColors {
 	#>
 	[Alias("Get-AllColors","Get-Colors","Get-ColorsList")]
 	#Requires -Version 3
-	[CmdletBinding(DefaultParameterSetName = "ColorList")]
+	[CmdletBinding(DefaultParameterSetName = "Default")]
 	Param(
 		[Parameter(ParameterSetName = "ColorList")]
 		[Alias('List','l','cl')]
@@ -127,13 +123,13 @@ Function Get-AllPowerShellColors {
 		[Alias('Grid','g','cg','ShowExamples','show','examples')]
 		[Switch]$ColorGrid,
 		
-		[Parameter(ParameterSetName = "ColorCompare")]
-		[Switch]$ConsoleColorComparison,
+		#[Parameter(ParameterSetName = "ColorCompare")]
+		#[Switch]$ConsoleColorComparison,
 		
 		[Alias('vt')]
 		[Switch]$VtColors,
 		
-		[Alias('bw','bnw')]
+		[Alias('bw','bnw','black','white')]
 		[Switch]$BlackAndWhite,
 		
 		[Alias('q')]
@@ -153,7 +149,7 @@ Function Get-AllPowerShellColors {
 		$PureBlackVtFontColor = ConvertTo-VtColorString -ForeColor "Black" -TerminalType 'powershell.exe'
 		$PureWhiteVtFontColor = ConvertTo-VtColorString -ForeColor "White" -TerminalType 'powershell.exe'
 	}
-	If ($Quiet -And $VtColors) {
+	If ($VtColors) {
 		
 		$VtColorCodeArray = @()
 		
@@ -167,7 +163,7 @@ Function Get-AllPowerShellColors {
 			$VsCodeBackColor  = (ConvertTo-VtColorString -BackColor $color -Raw -TerminalType 'Code.exe')
 			
 			$VtColorCodeArray += [PSCustomObject]@{
-				Color = $color; 
+				ColorName = $color; 
 				DefaultForeColor = $DefaultForeColor; 
 				DefaultBackColor = $DefaultBackColor; 
 				PoShForeColor = $PoShForeColor; 
@@ -176,11 +172,57 @@ Function Get-AllPowerShellColors {
 				VsCodeBackColor = $VsCodeBackColor
 			}
 			
-		}
+		} # End ForEach
 		
-		Return $VtColorCodeArray
+		If ($Quiet) {
+			Return $VtColorCodeArray
+		} Else {
+			$VtColorCodeArray | Format-Table -Property ColorName, @{
+				Label = "DFC"
+				Expression = {
+					$colorstr = ConvertTo-VtColorString -Raw -ForeColor $_.ColorName -BackColor $_.ColorName -TerminalType 'Default'
+					#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+					#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+					# Escape key
+					$e = [char]27
+					# Magic string: VT escape sequences:
+					# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+					#    - 0    Default    Returns all attributes to the default state prior to modification
+					#"$e[${colorstr}m$("       ")${e}[0m"
+					"$e[${colorstr}m$("Test")${e}[0m"
+				}
+			}, DefaultForeColor, DefaultBackColor, @{
+				Label = "PFC"
+				Expression = {
+					$colorstr = ConvertTo-VtColorString -Raw -ForeColor $_.ColorName -BackColor $_.ColorName -TerminalType 'powershell.exe'
+					#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+					#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+					# Escape key
+					$e = [char]27
+					# Magic string: VT escape sequences:
+					# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+					#    - 0    Default    Returns all attributes to the default state prior to modification
+					#"$e[${colorstr}m$("       ")${e}[0m"
+					"$e[${colorstr}m$("Test")${e}[0m"
+				}
+			}, PoShForeColor, PoShBackColor, @{
+				Label = "VFC"
+				Expression = {
+					$colorstr = ConvertTo-VtColorString -Raw -ForeColor $_.ColorName -BackColor $_.ColorName -TerminalType 'Code.exe'
+					#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+					#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+					# Escape key
+					$e = [char]27
+					# Magic string: VT escape sequences:
+					# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+					#    - 0    Default    Returns all attributes to the default state prior to modification
+					#"$e[${colorstr}m$("       ")${e}[0m"
+					"$e[${colorstr}m$("Test")${e}[0m"
+				}
+			}, VsCodeForeColor, VsCodeBackColor
+		} # End If/Else
 		
-	} ElseIf (!($Quiet)) {
+	} ElseIf (!($Quiet)) { # End If ($VtColors)
 		
 		If ($ColorGrid -And !($VtColors)) {
 			
@@ -310,7 +352,7 @@ Function Get-AllPowerShellColors {
 			
 			# End If $ColorGrid
 			#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-		} Else {
+		} Else { # If ($ColorGrid -And !($VtColors))
 			
 			If ($VtColors -And ($Grid -Or $ColorGrid)) {
 				$ResultsArray = @()
@@ -436,14 +478,32 @@ Set-Alias -Name 'Get-ColorsList' -Value 'Get-AllPowerShellColors'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
-Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Raw) {
+Function ConvertTo-VtColorString {
 	<#
+	.SYNOPSIS
+	Converts a color string to an RGB VT color string.
+	.DESCRIPTION
 	.PARAMETER TerminalType
 	-TerminalType "default"
 	-TerminalType "powershell.exe"
 	-TerminalType "Code.exe"
 	-TerminalType "VSCodium.exe"
+	.NOTES
+	.LINK
+	https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+	https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
 	#>
+	[CmdletBinding()]
+	Param(
+		[Parameter(Position = 0)]
+		[String]$ForeColor,
+		[Parameter(Position = 1)]
+		[String]$BackColor,
+		[Parameter(Mandatory = $False)]
+		[ValidateSet("default","powershell.exe","powershell","posh","Code.exe","vscode","VSCodium.exe","vscodium",IgnoreCase = $True)]
+		[String]$TerminalType,
+		[switch]$Raw
+	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Function ConvertTo-DefaultVtColorString($ForeColor,$BackColor) {
 		If ($ForeColor) {
@@ -465,6 +525,7 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 				'White' { $fcolor = "37"; break }
 				'Yellow' { $fcolor = "33"; break }
 				Default {
+					Write-Warning "Given ForeColor parameter could not be resolved. Reverting to default."
 					#0 	Default 	Returns all attributes to the default state prior to modification
 					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
 					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
@@ -491,6 +552,7 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 				'White' { $bcolor = "47"; break }
 				'Yellow' { $bcolor = "43"; break }
 				Default {
+					Write-Warning "Given BackColor parameter could not be resolved. Reverting to default."
 					#0 	Default 	Returns all attributes to the default state prior to modification
 					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
 					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
@@ -541,6 +603,7 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 			'White' { $fcolor = "38;2;255;255;255"; break }
 			'Yellow' { $fcolor = "38;2;255;255;0"; break }
 			Default {
+				Write-Warning "Given ForeColor parameter could not be resolved. Reverting to default."
 				#0 	Default 	Returns all attributes to the default state prior to modification
 				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
 				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
@@ -577,6 +640,7 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 			'White' { $bcolor = "48;2;255;255;255"; break }
 			'Yellow' { $bcolor = "48;2;255;255;0"; break }
 			Default {
+				Write-Warning "Given BackColor parameter could not be resolved. Reverting to default."
 				#0 	Default 	Returns all attributes to the default state prior to modification
 				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
 				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
@@ -620,6 +684,7 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 			'White' { $fcolor = "38;2;229;229;229"; break }
 			'Yellow' { $fcolor = "38;2;245;245;67"; break }
 			Default {
+				Write-Warning "Given ForeColor parameter could not be resolved. Reverting to default."
 				#0 	Default 	Returns all attributes to the default state prior to modification
 				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
 				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
@@ -650,6 +715,7 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 			'White' { $bcolor = "48;2;229;229;229"; break }
 			'Yellow' { $bcolor = "48;2;245;245;67"; break }
 			Default {
+				Write-Warning "Given BackColor parameter could not be resolved. Reverting to default."
 				#0 	Default 	Returns all attributes to the default state prior to modification
 				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
 				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
@@ -676,6 +742,15 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 		$SubFunctionParams += @{BackColor = $BackColor}
 	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	If ($TerminalType -ieq "powershell" -Or $TerminalType -ieq "posh") {
+		$TerminalType = "powershell.exe"
+	}
+	If ($TerminalType -ieq "vscode") {
+		$TerminalType = "Code.exe"
+	}
+	If ($TerminalType -ieq "vscodium") {
+		$TerminalType = "VSCodium.exe"
+	}
 	switch ($TerminalType) {
 		'default' {
 			Write-Verbose "Default colors chosen. (Explicit)"
@@ -690,7 +765,7 @@ Function ConvertTo-VtColorString($ForeColor,$BackColor,$TerminalType,[switch]$Ra
 			$VTColorString = ConvertTo-VscodeVtColorString @SubFunctionParams
 		} # 'Code.exe'
 		'VSCodium.exe' {
-			Write-Verbose "vscode (Code.exe) console colors chosen."
+			Write-Verbose "VSCodium.exe console colors chosen."
 			$VTColorString = ConvertTo-VscodeVtColorString @SubFunctionParams
 		} # 'VSCodium.exe'
 		Default {
@@ -1629,6 +1704,137 @@ Set-Alias -Name 'Get-MyProgressItems' -Value 'Get-MyTasks'
 #-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
+Function Get-Contexts {
+	<#
+	.SYNOPSIS
+	Print list of MTM (MiniTaskMang) contexts from default project.
+	.DESCRIPTION
+	Desc
+	.NOTES
+	Notes
+	.EXAMPLE
+	Get-Contexts -Path "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
+	
+	$ProjectPath = "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
+	.LINK
+	https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+	https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+	#>
+	[Alias('Get-MyContexts')]
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $True, Position = 0,
+		           ValueFromPipeline = $True, 
+		           ValueFromPipelineByPropertyName = $True,
+		           HelpMessage = "Path to ...")]
+		[ValidateNotNullOrEmpty()]
+		[Alias('Path')]
+		[String]$ProjectPath,
+		
+		[Parameter(ValueFromPipelineByPropertyName = $True)]
+		[ValidateSet("default", "powershell.exe", "Code.exe", "VSCodium.exe")]
+		[String]$TerminalTypeColors = 'default'
+	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$TerminalType = $TerminalTypeColors
+	
+	$ContextsTableName = "Contexts"
+	
+	$FileExtension = ".csv"
+	$ContextsFileName = $ContextsTableName + $FileExtension
+	$ContextsPath = Join-Path -Path $ProjectPath -ChildPath $ContextsFileName
+	
+	$Contexts = Import-Csv -Path $ContextsPath
+	
+	If ($DebugPreference -ne 'SilentlyContinue') {
+		$Contexts | Format-Table
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+	
+	#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+	
+	<#
+	dir -Exclude *.xml $pshome | Format-Table Mode,@{
+		Label = "Name"
+		Expression =
+		{
+			switch ($_.Extension)
+			{
+				'.exe' { $color = "93"; break }
+				'.ps1xml' { $color = '32'; break }
+				'.dll' { $color = "35"; break }
+			   default { $color = "0" }
+			}
+			$e = [char]27
+		   "$e[${color}m$($_.Name)${e}[0m"
+		}
+	 },Length
+	#>
+	
+	<#
+	Write-PSObject $servers -MatchMethod Exact -Column "Manufacture" -Value "HP" -ValueForeColor Yellow -ValueBackColor Red -RowForeColor White -RowBackColor Blue;
+	#>
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$Contexts = $Contexts | Where-Object -Property Enabled -eq True
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$Contexts | Format-Table -Property ID, @{
+		Label = "Name"
+		Expression = {
+			ForEach ($context in $Contexts) {
+				If ($context.ID -eq ($_.ID)) {
+					$ForegroundColorSel = $context.ForeColor
+					$BackgroundColorSel = $context.BackColor
+					$ContextSelName = $context.Name
+				}
+			}
+			
+			$colorstr = ConvertTo-VtColorString -ForeColor $ForegroundColorSel -BackColor $BackgroundColorSel -TerminalType $TerminalType
+			
+			#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+			#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+			# Escape key
+			$e = [char]27
+			# Magic string: VT escape sequences:
+			# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+			#    - 0    Default    Returns all attributes to the default state prior to modification
+			"$e[${colorstr}m$($ContextSelName)${e}[0m"
+		}
+	}, @{
+		Label = "Enabled"
+		Expression = {
+			
+			If ($_.Enabled -ieq "True") {
+				$colorstr = ConvertTo-VtColorString -ForeColor $ForegroundColorSel -BackColor $BackgroundColorSel -TerminalType $TerminalType
+			} Else {
+				$colorstr = ConvertTo-VtColorString -ForeColor $ForegroundColorSel -BackColor $BackgroundColorSel -TerminalType $TerminalType
+			}
+			
+			#https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
+			#https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+			# Escape key
+			$e = [char]27
+			# Magic string: VT escape sequences:
+			# - ESC [ <n> m    Set the format of the screen and text as specified by <n>
+			#    - 0    Default    Returns all attributes to the default state prior to modification
+			"$e[${colorstr}m$($StatusSelName)${e}[0m"
+		}
+	}, CreationDate, LastUpdateDate, CompletionDate, DeletionDate
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	Return
+} # End of Get-Contexts function.
+Set-Alias -Name 'Get-MyContexts' -Value 'Get-Contexts'
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
 Function New-Task {
 	<#
 	.SYNOPSIS
@@ -1642,12 +1848,13 @@ Function New-Task {
 		[Parameter(Mandatory = $True, 
 				   Position = 0, 
 				   ValueFromPipeline = $True, 
-				   ValueFromPipelineByPropertyName = $True)]
+				   ValueFromPipelineByPropertyName = $True, 
+				   HelpMessage = "Enter new Task name")]
 		[ValidateNotNullOrEmpty()]
 		[Alias('Task','Name','n')]
 		[String]$TaskName,
 		
-		[Parameter(Mandatory = $True, 
+		[Parameter(Mandatory = $False, 
 				   Position = 1, 
 				   ValueFromPipelineByPropertyName = $True)]
 		[ValidateNotNullOrEmpty()]
@@ -1660,6 +1867,10 @@ Function New-Task {
 		
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	If (!($Context)) {
+		
+	}
 	
 	
 	Return
