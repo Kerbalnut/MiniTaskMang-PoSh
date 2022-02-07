@@ -1558,6 +1558,45 @@ Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
 Set-Alias -Name 'New-TaskTrackingInit' -Value 'New-TaskTrackingInitiative'
 #-----------------------------------------------------------------------------------------------------------------------
 
+
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+Function Get-DefaultMTMProjectPath {
+	<#
+	.SYNOPSIS
+	Single-line summary.
+	.DESCRIPTION
+	Multiple paragraphs describing in more detail what the function is, what it does, how it works, inputs it expects, and outputs it creates.
+	.NOTES
+	Some extra info about this function, like it's origins, what module (if any) it's apart of, and where it's from.
+	
+	Maybe some original author credits as well.
+	#>
+	[Alias("Get-MTMPath")]
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param()
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$CommonParameters = @{
+		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
+		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$DefualtProjectPath = "C:\Users\G\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	Return $DefualtProjectPath
+} # End of Get-DefaultMTMProjectPath function.
+Set-Alias -Name 'Get-MTMPath' -Value 'Get-DefaultMTMProjectPath'
+#-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-MyTasks {
 	<#
@@ -1577,7 +1616,7 @@ Function Get-MyTasks {
 	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
-		[Parameter(Mandatory = $True, Position = 0,
+		[Parameter(Mandatory = $False, Position = 0,
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True,
 		           HelpMessage = "Path to ...")]
@@ -1590,6 +1629,11 @@ Function Get-MyTasks {
 		[String]$TerminalTypeColors = 'default'
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	If ($null -eq $ProjectPath -Or !($ProjectPath) -Or $ProjectPath -eq "") {
+		$ProjectPath = Get-DefaultMTMProjectPath
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	$TerminalType = $TerminalTypeColors
 	
 	#$ProjectPath = "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
@@ -1723,7 +1767,7 @@ Function Get-Contexts {
 	[Alias('Get-MyContexts')]
 	[CmdletBinding()]
 	Param(
-		[Parameter(Mandatory = $True, Position = 0,
+		[Parameter(Mandatory = $False, Position = 0,
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True,
 		           HelpMessage = "Path to ...")]
@@ -1735,6 +1779,10 @@ Function Get-Contexts {
 		[ValidateSet("default", "powershell.exe", "Code.exe", "VSCodium.exe")]
 		[String]$TerminalTypeColors = 'default'
 	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	If ($null -eq $ProjectPath -Or !($ProjectPath) -Or $ProjectPath -eq "") {
+		$ProjectPath = Get-DefaultMTMProjectPath
+	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	$TerminalType = $TerminalTypeColors
 	
@@ -1867,6 +1915,10 @@ Function New-Task {
 		
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	If ($null -eq $ProjectPath -Or !($ProjectPath) -Or $ProjectPath -eq "") {
+		$ProjectPath = Get-DefaultMTMProjectPath
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	If (!($Context)) {
 		
@@ -1942,7 +1994,7 @@ Function Select-Task {
 	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
-		[Parameter(Mandatory = $True, Position = 0, 
+		[Parameter(Mandatory = $False, Position = 0, 
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True, 
 		           HelpMessage = "Path to ...")]
@@ -1956,6 +2008,10 @@ Function Select-Task {
 		[Alias('Task','ID','t','i')]
 		[String]$TaskID
 	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	If ($null -eq $ProjectPath -Or !($ProjectPath) -Or $ProjectPath -eq "") {
+		$ProjectPath = Get-DefaultMTMProjectPath
+	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	
