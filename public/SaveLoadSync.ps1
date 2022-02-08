@@ -1596,6 +1596,48 @@ Set-Alias -Name 'Get-MTMPath' -Value 'Get-DefaultMTMProjectPath'
 
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+Function Set-DefaultMTMProjectPath {
+	<#
+	.SYNOPSIS
+	Single-line summary.
+	.DESCRIPTION
+	Multiple paragraphs describing in more detail what the function is, what it does, how it works, inputs it expects, and outputs it creates.
+	.NOTES
+	Some extra info about this function, like it's origins, what module (if any) it's apart of, and where it's from.
+	
+	Maybe some original author credits as well.
+	#>
+	[Alias("Set-MTMPath")]
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $True, Position = 0,
+		           ValueFromPipeline = $True, 
+		           ValueFromPipelineByPropertyName = $True,
+		           HelpMessage = "Path to MiniTaskMang project folder")]
+		[ValidateNotNullOrEmpty()]
+		[Alias('Path')]
+		[String]$ProjectPath
+		
+	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$CommonParameters = @{
+		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
+		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	Return
+} # End of Set-DefaultMTMProjectPath function.
+Set-Alias -Name 'Set-MTMPath' -Value 'Set-DefaultMTMProjectPath'
+#-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-MyTasks {
@@ -1606,6 +1648,8 @@ Function Get-MyTasks {
 	Desc
 	.NOTES
 	Notes
+	.EXAMPLE
+	Get-MyTasks
 	.EXAMPLE
 	Get-MyTasks -Path "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
 	.LINK
@@ -1619,7 +1663,7 @@ Function Get-MyTasks {
 		[Parameter(Mandatory = $False, Position = 0,
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True,
-		           HelpMessage = "Path to ...")]
+		           HelpMessage = "Path to MiniTaskMang project folder")]
 		[ValidateNotNullOrEmpty()]
 		[Alias('Path')]
 		[String]$ProjectPath,
@@ -1757,6 +1801,8 @@ Function Get-Contexts {
 	.NOTES
 	Notes
 	.EXAMPLE
+	Get-Contexts
+	.EXAMPLE
 	Get-Contexts -Path "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
 	
 	$ProjectPath = "$Home\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
@@ -1770,7 +1816,7 @@ Function Get-Contexts {
 		[Parameter(Mandatory = $False, Position = 0,
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True,
-		           HelpMessage = "Path to ...")]
+		           HelpMessage = "Path to MiniTaskMang project folder")]
 		[ValidateNotNullOrEmpty()]
 		[Alias('Path')]
 		[String]$ProjectPath,
@@ -1941,12 +1987,13 @@ Function New-Category {
 	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
-		[Parameter(Mandatory = $True, Position = 0,
+		[Parameter(Mandatory = $False, Position = 0,
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True,
-		           HelpMessage = "Path to ...")]
+		           HelpMessage = "Path to MiniTaskMang project folder")]
 		[ValidateNotNullOrEmpty()]
-		[String]$Path
+		[Alias('Path')]
+		[String]$ProjectPath
 		
 	)
 	
@@ -1967,12 +2014,13 @@ Function Get-MyTaskStatus {
 	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
-		[Parameter(Mandatory = $True, Position = 0,
+		[Parameter(Mandatory = $False, Position = 0,
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True,
-		           HelpMessage = "Path to ...")]
+		           HelpMessage = "Path to MiniTaskMang project folder")]
 		[ValidateNotNullOrEmpty()]
-		[String]$Path
+		[Alias('Path')]
+		[String]$ProjectPath
 		
 	)
 	
@@ -1997,7 +2045,7 @@ Function Select-Task {
 		[Parameter(Mandatory = $False, Position = 0, 
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True, 
-		           HelpMessage = "Path to ...")]
+		           HelpMessage = "Path to MiniTaskMang project folder")]
 		[ValidateNotNullOrEmpty()]
 		[Alias('Path')]
 		[String]$ProjectPath,
@@ -2013,6 +2061,7 @@ Function Select-Task {
 		$ProjectPath = Get-DefaultMTMProjectPath
 	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
