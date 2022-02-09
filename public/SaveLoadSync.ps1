@@ -1618,7 +1618,9 @@ Function Set-DefaultMTMProjectPath {
 		           HelpMessage = "Path to MiniTaskMang project folder")]
 		[ValidateNotNullOrEmpty()]
 		[Alias('Path')]
-		[String]$ProjectPath
+		[String]$ProjectPath,
+		
+		[String]$PathToModuleTemplate = "MTM_GetProjPath_template.psm1"
 		
 	)
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1628,6 +1630,14 @@ Function Set-DefaultMTMProjectPath {
 	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
+	Write-Verbose "Get contents of $PathToModuleTemplate"
+	
+	Get-Content -Path $PathToModuleTemplate
+	
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Return
@@ -1635,9 +1645,149 @@ Function Set-DefaultMTMProjectPath {
 Set-Alias -Name 'Set-MTMPath' -Value 'Set-DefaultMTMProjectPath'
 #-----------------------------------------------------------------------------------------------------------------------
 
-
-
-
+#-----------------------------------------------------------------------------------------------------------------------
+Function Get-PartialOrFullPath {
+	<#
+	.SYNOPSIS
+	Single-line summary.
+	.DESCRIPTION
+	Multiple paragraphs describing in more detail what the function is, what it does, how it works, inputs it expects, and outputs it creates.
+	.NOTES
+	Some extra info about this function, like it's origins, what module (if any) it's apart of, and where it's from.
+	
+	Maybe some original author credits as well.
+	#>
+	[Alias("Get-PartialPath")]
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param(
+		[Parameter(Mandatory = $True, Position = 0,
+		           ValueFromPipeline = $True, 
+		           ValueFromPipelineByPropertyName = $True,
+		           HelpMessage = "Path to ...")]
+		[ValidateNotNullOrEmpty()]
+		[String]$Path
+		
+	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$CommonParameters = @{
+		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
+		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Check if given BackupFile path is a filename, or full path.
+	$PathPrefix = Split-Path -Path $BackupFile -Parent
+	
+	# Check if given $BackupFile string is a file
+	$PartialPath = $False
+	If ($PathPrefix -eq "." -Or $PathPrefix -eq "\" -Or $PathPrefix -eq "" -Or $null -eq $PathPrefix) {
+		$PartialPath = $True
+		Write-Verbose "Partial Path detected: $PartialPath"
+	}
+	
+	If ($PartialPath) {
+		# If BackupFile filename starts with a period . remove it: E.g. ".\Backup file name.log" to "\Backup file name.log"
+		$BackupFile = $BackupFile -replace '^\.', ''
+		# RegEx: ^\.
+		#    ^   Asserts position at start of a line.
+		#    \.  Matches the period . character literally. (Backslash \ is the escape character)
+		
+		# Get current execution path, in order to combine with given BackupFile filename to get a full file path.
+		$ScriptPath = $MyInvocation.MyCommand.Path
+		# If being run via F8 'Run Selection' method, then $MyInvocation.MyCommand.Definition will return entire script being executed, and will probably make Split-Path fail.
+		#$ScriptDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent # PoSh v2 compatible - thanks to https://stackoverflow.com/questions/5466329/whats-the-best-way-to-determine-the-location-of-the-current-powershell-script
+		$WorkingDirectory = Get-Location
+		Write-Verbose "`$ScriptPath = $ScriptPath"
+		#Write-Verbose "`$ScriptDir = $ScriptDir"
+		Write-Verbose "`$WorkingDirectory = $WorkingDirectory"
+		
+		# Combine current execution path with given BackupFile filename to get a full file path:
+		$BackupFile = Join-Path -Path $WorkingDirectory -ChildPath $BackupFile
+	}
+	
+	# Get file extension:
+	#https://www.tutorialspoint.com/how-to-get-the-file-extension-using-powershell
+	$Method = 0
+	switch ($Method) {
+		0 {
+			$FileExtension = [System.IO.Path]::GetExtension($BackupFile)
+			# .txt
+			# .zip
+			Write-Verbose "Get file extension method $($Method): [System.IO.Path]::GetExtension(`$BackupFile)`n`t- `$FileExtension = `"$FileExtension`""
+		}
+		1 {
+			$FileExtension = ((Split-Path $BackupFile -Leaf).Split('.'))[1]
+			# txt
+			# zip
+			Write-Verbose "Get file extension method $($Method): ((Split-Path `$BackupFile -Leaf).Split('.'))[1]`n`t- `$FileExtension = `"$FileExtension`""
+		}
+		2 {
+			$FileExtension = (Get-ChildItem $BackupFile).Extension
+			# .txt
+			# .zip
+			Write-Verbose "Get file extension method $($Method): (Get-ChildItem `$BackupFile).Extension`n`t- `$FileExtension = `"$FileExtension`""
+		}
+		3 {
+			$FileExtension = (Get-Item $BackupFile).Extension
+			# .txt
+			# .zip
+			Write-Verbose "Get file extension method $($Method): (Get-Item `$BackupFile).Extension`n`t- `$FileExtension = `"$FileExtension`""
+		}
+		Default {Throw "Please select a method (`$Method = `'$Method`') for getting PowerShell path extension."}
+	}
+	Write-Verbose "`$FileExtension = `"$FileExtension`""
+	
+	# If given filename doesn't have an extension for some reason, assign one.
+	If ($FileExtension -eq '' -Or $null -eq $FileExtension) {
+		$FileExtension = ".txt"
+		Write-Verbose "`$FileExtension = `"$FileExtension`" (none detected, defaulting to .txt)"
+		$BackupFile = $BackupFile + $FileExtension
+	}
+	
+	Write-Verbose "Before any file (backup) operations."
+	# If BackupFile still exists, try to rename it to BackupFile_old or something:
+	If ((Test-Path -Path $BackupFile)) {
+		Write-Warning "`$BackupFile already exists: `"$BackupFile`""
+		# Generate BackupFile_old filepath:
+		If ($FileExtension -ne '' -And $null -ne $FileExtension) {
+			# Remove file extension:
+			$NoExtension = $BackupFile -replace '\.\w+$', ''
+			# RegEx: \.\w+$
+			#    \.  Matches the period . character literally. (Backslash \ is the escape character)
+			#    \w+ Matches any word character (equivalent to [a-zA-Z0-9_]), and the plus + modifier matches between one and unlimited times (Greedy).
+			#    $   Asserts position at the end of a line.
+		}
+		
+		$NewName = $NoExtension + "_old" + $FileExtension
+		
+		Write-Verbose "Renaming existing file to: `"$NewName`""
+		# Check if this BackupFile_old file already exists:
+		If ((Test-Path -Path $NewName)) {
+			Write-Warning "Old backup file already exists: `"$NewName`""
+			Write-Warning "Removing old backup file before generating new one: `"$NewName`""
+			Write-Debug "Removing old backup file before generating new one: `"$NewName`""
+			Remove-Item -Path $NewName
+			Start-Sleep -Milliseconds 150
+		}
+		Rename-Item -Path $BackupFile -NewName $NewName
+		Start-Sleep -Milliseconds 150
+	}
+	#New-Item -Path $BackupFile -Value (Get-Date -Format "o")
+	$NewItemResults = New-Item -Path $BackupFile
+	Add-Content -Path $BackupFile -Value (Get-Date -Format "o")
+	#Add-Content -Path $BackupFile -Value "`n"
+	Add-Content -Path $BackupFile -Value (Get-Date)
+	Add-Content -Path $BackupFile -Value "`n"
+	
+	Write-Verbose "Finished verifying `$BackupFile path: `"$BackupFile`""
+	
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	Return
+} # End of Get-PartialOrFullPath function.
+Set-Alias -Name 'Get-PartialPath' -Value 'Get-PartialOrFullPath'
+#-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-MyTasks {
