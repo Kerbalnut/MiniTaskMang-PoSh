@@ -66,12 +66,29 @@ Set-Alias -Name 'Get-DefaultStatus' -Value 'Get-DefaultStatuses'
 Function Get-AllPowerShellColors {
 	<#
 	.SYNOPSIS
-	Prints complete list of every available PowerShell color with Foreground and Background examples.
+	Returns available PowerShell colors.
 	.DESCRIPTION
+	Prints complete list of every available PowerShell color with Foreground and Background examples.
+	.PARAMETER List
+	Prints a complete list of different ForeGround and BackGround color examples. Useful for choosing multiple fore/back color pairs.
+	
+	Not compatible with -ColorGrid parameter.
+	.PARAMETER AddColorLabels
+	Adds non-color-formatted labels to -ColorList output.
+	
+	For a standard-width PowerShell terminal, this extra string length will overflow each line of printed output, so usually requires a wider than normal terminal width for formatted output.
 	.PARAMETER Grid
-	Supresses standard (default-colored) suffix text printed after each color example, which usually over-runs standard PowerShell console window width, causing a line break.
+	Returns an array object with details about color options, and few color examples.
+	
+	Not compatible with -ColorList parameter.
+	.PARAMETER VtColors
+	Show addiitional options for Virtual Terminal colors.
 	.PARAMETER Quiet
-	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce output.
+	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce host/terminal output. Pipeline output will still be produced.
+	.EXAMPLE
+	Get-AllPowerShellColors
+	
+	Lists available PowerShell colors.
 	.EXAMPLE
 	(Get-AllPowerShellColors -Quiet).Count
 	
@@ -83,23 +100,23 @@ Function Get-AllPowerShellColors {
 	.EXAMPLE
 	Get-AllPowerShellColors -Quiet -Alphabetic:$False
 	
-	Do not produce alphabetic output.
+	Do not produce alphabetic output. This switch is on by default, so this syntax is required to explicitly turn it off.
 	.EXAMPLE
 	Get-AllPowerShellColors -List
-	.EXAMPLE
+	
+	Alias for:
 	Get-AllPowerShellColors -ColorList
 	.EXAMPLE
 	Get-AllPowerShellColors -Grid
 	
 	Prints to console a list of every powershell color applied in every variety of Foreground color and Background color combination. Traditionally, there are 16 available colors, so this switch generates a nice-looking grid on standard-width PowerShell terminal.
-	.EXAMPLE
+	
+	Alias for:
 	Get-AllPowerShellColors -ColorGrid
 	.EXAMPLE
 	Get-AllPowerShellColors -ColorGrid -BlackAndWhite
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors
-	.EXAMPLE
-	Get-AllPowerShellColors -VtColors -Grid
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors -ColorGrid
 	.EXAMPLE
@@ -117,7 +134,7 @@ Function Get-AllPowerShellColors {
 		[Switch]$ColorList,
 		
 		[Parameter(ParameterSetName = "ColorList")]
-		[Switch]$NoLabels,
+		[Switch]$AddColorLabels,
 		
 		[Parameter(ParameterSetName = "ColorGrid")]
 		[Alias('Grid','g','cg','ShowExamples','show','examples')]
@@ -145,10 +162,37 @@ Function Get-AllPowerShellColors {
 		# Alphabetic output:
 		$Colors = [string[]]([enum]::GetValues([System.ConsoleColor])) | Sort-Object
 	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	If ($BlackAndWhite) {
 		$PureBlackVtFontColor = ConvertTo-VtColorString -ForeColor "Black" -TerminalType 'powershell.exe'
 		$PureWhiteVtFontColor = ConvertTo-VtColorString -ForeColor "White" -TerminalType 'powershell.exe'
 	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	If ($ColorList) {
+		# Print list to terminal
+		
+	} ElseIf ($ColorGrid) { # End If ($ColorList)
+		# Arrange array to return
+		
+		
+	} ElseIf ($VtColors) { # End ElseIf ($ColorGrid)
+		# No other -List or -Grid param specified, but -VtColors is.
+		
+		
+		
+		If ($BlackAndWhite) {
+			
+		}
+		
+	} Else { # End ElseIf ($VtColors)
+		If ($BlackAndWhite) {
+			$Colors = $Colors | Where-Object {$_ -match "Black|White"}
+		}
+		Return $Colors
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	If ($VtColors) {
 		
 		$VtColorCodeArray = @()
@@ -488,6 +532,8 @@ Function ConvertTo-VtColorString {
 	-TerminalType "powershell.exe"
 	-TerminalType "Code.exe"
 	-TerminalType "VSCodium.exe"
+	.PARAMETER Raw
+	For certain colors that seem to produce incorrect output in certain terminals, show that color as measured, instead of correcting it.
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20705102/how-to-colorise-powershell-output-of-format-table
