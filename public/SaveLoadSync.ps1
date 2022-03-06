@@ -1531,43 +1531,8 @@ Set-Alias -Name 'New-ProjectInit' -Value 'New-TaskTrackingInitiative'
 Set-Alias -Name 'New-TaskTrackingInit' -Value 'New-TaskTrackingInitiative'
 #-----------------------------------------------------------------------------------------------------------------------
 
-
-
-
 #
-#-----------------------------------------------------------------------------------------------------------------------
-Function Get-DefaultMTMProjectPath {
-	<#
-	.SYNOPSIS
-	Single-line summary.
-	.DESCRIPTION
-	Multiple paragraphs describing in more detail what the function is, what it does, how it works, inputs it expects, and outputs it creates.
-	.NOTES
-	Some extra info about this function, like it's origins, what module (if any) it's apart of, and where it's from.
-	
-	Maybe some original author credits as well.
-	#>
-	[Alias("Get-MTMPath")]
-	#Requires -Version 3
-	[CmdletBinding()]
-	Param()
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	$CommonParameters = @{
-		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
-		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
-	}
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	$DefualtProjectPath = "C:\Users\G\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
-	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	Return $DefualtProjectPath
-} # End of Get-DefaultMTMProjectPath function.
-Set-Alias -Name 'Get-MTMPath' -Value 'Get-DefaultMTMProjectPath'
-#-----------------------------------------------------------------------------------------------------------------------
 #>
-
-
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Set-DefaultMTMProjectPath {
@@ -1576,6 +1541,8 @@ Function Set-DefaultMTMProjectPath {
 	Single-line summary.
 	.DESCRIPTION
 	Multiple paragraphs describing in more detail what the function is, what it does, how it works, inputs it expects, and outputs it creates.
+	.PARAMETER ProjectPath
+	.PARAMETER PathToModuleTemplate
 	.NOTES
 	Some extra info about this function, like it's origins, what module (if any) it's apart of, and where it's from.
 	
@@ -1587,9 +1554,7 @@ Function Set-DefaultMTMProjectPath {
 	Param(
 		[Parameter(Mandatory = $True, Position = 0,
 		           ValueFromPipeline = $True, 
-		           ValueFromPipelineByPropertyName = $True,
-		           HelpMessage = "Path to MiniTaskMang project folder")]
-		[ValidateNotNullOrEmpty()]
+		           ValueFromPipelineByPropertyName = $True)]
 		[Alias('Path')]
 		[String]$ProjectPath,
 		
@@ -1603,9 +1568,26 @@ Function Set-DefaultMTMProjectPath {
 	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
-	Write-Verbose "Get contents of $PathToModuleTemplate"
+	Write-Verbose "Check that project path exists."
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	
+	Write-Verbose "Process module template path:"
+	
+	Write-Verbose "Remove _Template keyword: Separate extension, remove keyword, concat extension."
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	Write-Verbose "Replace placeholder vars:"
+	
+	Write-Verbose "Get contents of `"$PathToModuleTemplate`", find-and-replace vars, "
 	
 	Get-Content -Path $PathToModuleTemplate
+	
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 	
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1617,6 +1599,8 @@ Function Set-DefaultMTMProjectPath {
 } # End of Set-DefaultMTMProjectPath function.
 Set-Alias -Name 'Set-MTMPath' -Value 'Set-DefaultMTMProjectPath'
 #-----------------------------------------------------------------------------------------------------------------------
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-PartialOrFullPath {

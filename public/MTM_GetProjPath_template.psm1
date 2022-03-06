@@ -1,4 +1,5 @@
 
+#-----------------------------------------------------------------------------------------------------------------------
 Function Get-DefaultMTMProjectPath {
 	<#
 	.SYNOPSIS
@@ -9,10 +10,22 @@ Function Get-DefaultMTMProjectPath {
 	$Notes
 	#>
 	[Alias("Get-MTMPath")]
+	#Requires -Version 3
 	[CmdletBinding()]
 	Param()
-	Return "C:\Users\G\Documents\GitHub\MiniTaskMang-PoSh\Test Project"
-	#Return $DefaultPath
-}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$CommonParameters = @{
+		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
+		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	$DefualtProjectPath = $InsertPath
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	Return $DefualtProjectPath
+} # End of Get-DefaultMTMProjectPath function.
 Set-Alias -Name 'Get-MTMPath' -Value 'Get-DefaultMTMProjectPath'
+#-----------------------------------------------------------------------------------------------------------------------
+
 
