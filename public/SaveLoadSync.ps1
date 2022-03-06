@@ -1600,7 +1600,53 @@ Function Set-DefaultMTMProjectPath {
 Set-Alias -Name 'Set-MTMPath' -Value 'Set-DefaultMTMProjectPath'
 #-----------------------------------------------------------------------------------------------------------------------
 
-
+#-----------------------------------------------------------------------------------------------------------------------
+Function Get-LocalPath {
+	<#
+	.SYNOPSIS
+	Returns the local path of this function.
+	.DESCRIPTION
+	
+	.NOTES
+	Created: 2022-03-06
+	Author: Kerbalnut
+	#>
+	#Requires -Version 3
+	[CmdletBinding()]
+	Param()
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$CommonParameters = @{
+		Verbose = [System.Management.Automation.ActionPreference]$VerbosePreference
+		Debug = [System.Management.Automation.ActionPreference]$DebugPreference
+	}
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	# Script name (including extension)
+	$ScriptName = $MyInvocation.MyCommand.Name
+	Write-Verbose "Script name: `"$ScriptName`""
+	Write-Verbose `r`n # New line (carriage return and newline (CRLF), `r`n)
+	
+	# Script dir (home directory of script)
+	Write-Verbose "Script home directory:"
+	#https://stackoverflow.com/questions/801967/how-can-i-find-the-source-path-of-an-executing-script/6985381#6985381
+	$ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
+	Write-Verbose "$ScriptDir"
+	$ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Definition # PoSh v2 compatible - thanks to https://stackoverflow.com/questions/5466329/whats-the-best-way-to-determine-the-location-of-the-current-powershell-script
+	Write-Verbose "$ScriptDir"
+	$ScriptDir = $PSScriptRoot # PoSh v3 compatible - This is an automatic variable set to the current file's/module's directory
+	Write-Verbose "$ScriptDir"
+	Write-Verbose `r`n # New line (carriage return and newline (CRLF), `r`n)
+	
+	# Script path (full file path & name & extension of currently running script)
+	$ScriptPath = $MyInvocation.MyCommand.Path
+	Write-Verbose "Script full path:"
+	Write-Verbose "$ScriptPath"
+	Write-Verbose `r`n # New line (carriage return and newline (CRLF), `r`n)
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	Return
+} # End of Get-LocalPath function.
+#-----------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------
 Function Get-PartialOrFullPath {
