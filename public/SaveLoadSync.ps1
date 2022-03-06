@@ -106,6 +106,9 @@ Function Get-AllPowerShellColors {
 	
 	Alias for:
 	Get-AllPowerShellColors -ColorList
+	
+	.EXAMPLE
+	Get-AllPowerShellColors -List -AddColorLabels
 	.EXAMPLE
 	Get-AllPowerShellColors -Grid
 	
@@ -459,7 +462,7 @@ Function ConvertTo-VtColorString {
 		[String]$ForeColor,
 		[Parameter(Position = 1)]
 		[String]$BackColor,
-		[Parameter(Mandatory = $False)]
+		[Parameter(Position = 2, Mandatory = $False)]
 		[ValidateSet("default","powershell.exe","powershell","posh","Code.exe","vscode","VSCodium.exe","vscodium",IgnoreCase = $True)]
 		[String]$TerminalType,
 		[switch]$Raw
@@ -492,7 +495,7 @@ Function ConvertTo-VtColorString {
 					$fcolor = "39"
 				}
 			} # switch
-		}
+		} # End If ($ForeColor)
 		If ($BackColor) {
 			switch ($BackColor) {
 				'Black' { $bcolor = "40"; break }
@@ -519,7 +522,7 @@ Function ConvertTo-VtColorString {
 					$bcolor = "49"
 				}
 			} # switch
-		}
+		} # End If ($BackColor)
 		If ($ForeColor -And $BackColor) {
 			$VTColorString = $fcolor + ";" + $bcolor
 		} Else {
@@ -533,80 +536,84 @@ Function ConvertTo-VtColorString {
 	} # End ConvertTo-DefaultVtColorString
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Function ConvertTo-PoshTerminalVtColorString($ForeColor,$BackColor) {
-		switch ($ForeColor) {
-			'Black' { $fcolor = "38;2;0;0;0"; break }
-			'Blue' { $fcolor = "38;2;0;0;255"; break }
-			'Cyan' { $fcolor = "38;2;0;255;255"; break }
-			'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
-			'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
-			'DarkGray' { $fcolor = "38;2;128;128;128"; break }
-			'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
-			'DarkMagenta' {
-				If ($Raw) {
-					$fcolor = "38;2;1;36;86"; break # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
-				} Else {
-					$fcolor = "38;2;188;63;188"; break # taken from vscode colors
+		If ($ForeColor) {
+			switch ($ForeColor) {
+				'Black' { $fcolor = "38;2;0;0;0"; break }
+				'Blue' { $fcolor = "38;2;0;0;255"; break }
+				'Cyan' { $fcolor = "38;2;0;255;255"; break }
+				'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
+				'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
+				'DarkGray' { $fcolor = "38;2;128;128;128"; break }
+				'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
+				'DarkMagenta' {
+					If ($Raw) {
+						$fcolor = "38;2;1;36;86"; break # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
+					} Else {
+						$fcolor = "38;2;188;63;188"; break # taken from vscode colors
+					}
 				}
-			}
-			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
-			'DarkYellow' {
-				If ($Raw) {
-					$fcolor = "38;2;238;237;240"; break # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
-				} Else {
-					$fcolor = "38;2;229;229;16"; break # taken from vscode colors
+				'DarkRed' { $fcolor = "38;2;128;0;0"; break }
+				'DarkYellow' {
+					If ($Raw) {
+						$fcolor = "38;2;238;237;240"; break # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
+					} Else {
+						$fcolor = "38;2;229;229;16"; break # taken from vscode colors
+					}
 				}
-			}
-			'Gray' { $fcolor = "38;2;192;192;192"; break }
-			'Green' { $fcolor = "38;2;0;255;0"; break }
-			'Magenta' { $fcolor = "38;2;255;0;255"; break }
-			'Red' { $fcolor = "38;2;255;0;0"; break }
-			'White' { $fcolor = "38;2;255;255;255"; break }
-			'Yellow' { $fcolor = "38;2;255;255;0"; break }
-			Default {
-				Write-Warning "Given ForeColor parameter could not be resolved. Reverting to default."
-				#0 	Default 	Returns all attributes to the default state prior to modification
-				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$fcolor = "39"
-			}
-		} # switch
-		switch ($BackColor) {
-			'Black' { $bcolor = "48;2;0;0;0"; break }
-			'Blue' { $bcolor = "48;2;0;0;255"; break }
-			'Cyan' { $bcolor = "48;2;0;255;255"; break }
-			'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
-			'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
-			'DarkGray' { $bcolor = "48;2;128;128;128"; break }
-			'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
-			'DarkMagenta' {
-				If ($Raw) {
-					$bcolor = "48;2;1;36;86"; break # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
-				} Else {
-					$bcolor = "48;2;188;63;188"; break # taken from vscode colors
+				'Gray' { $fcolor = "38;2;192;192;192"; break }
+				'Green' { $fcolor = "38;2;0;255;0"; break }
+				'Magenta' { $fcolor = "38;2;255;0;255"; break }
+				'Red' { $fcolor = "38;2;255;0;0"; break }
+				'White' { $fcolor = "38;2;255;255;255"; break }
+				'Yellow' { $fcolor = "38;2;255;255;0"; break }
+				Default {
+					Write-Warning "Given ForeColor parameter could not be resolved. Reverting to default."
+					#0 	Default 	Returns all attributes to the default state prior to modification
+					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+					$fcolor = "39"
 				}
-			}
-			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
-			'DarkYellow' {
-				If ($Raw) {
-					$bcolor = "48;2;238;237;240"; break # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
-				} Else {
-					$bcolor = "48;2;229;229;16"; break # taken from vscode colors
+			} # switch
+		} # End If ($ForeColor)
+		If ($BackColor) {
+			switch ($BackColor) {
+				'Black' { $bcolor = "48;2;0;0;0"; break }
+				'Blue' { $bcolor = "48;2;0;0;255"; break }
+				'Cyan' { $bcolor = "48;2;0;255;255"; break }
+				'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
+				'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
+				'DarkGray' { $bcolor = "48;2;128;128;128"; break }
+				'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
+				'DarkMagenta' {
+					If ($Raw) {
+						$bcolor = "48;2;1;36;86"; break # Standard, (broken): appears as the same color of standard (blue) powershell terminal background
+					} Else {
+						$bcolor = "48;2;188;63;188"; break # taken from vscode colors
+					}
 				}
-			}
-			'Gray' { $bcolor = "48;2;192;192;192"; break }
-			'Green' { $bcolor = "48;2;0;255;0"; break }
-			'Magenta' { $bcolor = "48;2;255;0;255"; break }
-			'Red' { $bcolor = "48;2;255;0;0"; break }
-			'White' { $bcolor = "48;2;255;255;255"; break }
-			'Yellow' { $bcolor = "48;2;255;255;0"; break }
-			Default {
-				Write-Warning "Given BackColor parameter could not be resolved. Reverting to default."
-				#0 	Default 	Returns all attributes to the default state prior to modification
-				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$bcolor = "49"
-			}
-		} # switch
+				'DarkRed' { $bcolor = "48;2;128;0;0"; break }
+				'DarkYellow' {
+					If ($Raw) {
+						$bcolor = "48;2;238;237;240"; break # Standard, (broken): appears as a lighter gray than 'Gray', almost white but not quite
+					} Else {
+						$bcolor = "48;2;229;229;16"; break # taken from vscode colors
+					}
+				}
+				'Gray' { $bcolor = "48;2;192;192;192"; break }
+				'Green' { $bcolor = "48;2;0;255;0"; break }
+				'Magenta' { $bcolor = "48;2;255;0;255"; break }
+				'Red' { $bcolor = "48;2;255;0;0"; break }
+				'White' { $bcolor = "48;2;255;255;255"; break }
+				'Yellow' { $bcolor = "48;2;255;255;0"; break }
+				Default {
+					Write-Warning "Given BackColor parameter could not be resolved. Reverting to default."
+					#0 	Default 	Returns all attributes to the default state prior to modification
+					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+					$bcolor = "49"
+				}
+			} # switch
+		} # End If ($BackColor)
 		If ($ForeColor -And $BackColor) {
 			$VTColorString = $fcolor + ";" + $bcolor
 		} Else {
@@ -620,68 +627,72 @@ Function ConvertTo-VtColorString {
 	} # End ConvertTo-PoshTerminalVtColorString
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	Function ConvertTo-VscodeVtColorString($ForeColor,$BackColor) {
-		switch ($ForeColor) {
-			'Black' { $fcolor = "38;2;0;0;0"; break }
-			'Blue' { $fcolor = "38;2;59;142;234"; break }
-			'Cyan' { $fcolor = "38;2;41;184;219"; break }
-			'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
-			'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
-			'DarkGray' { $fcolor = "38;2;128;128;128"; break }
-			'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
-			'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
-			'DarkRed' { $fcolor = "38;2;128;0;0"; break }
-			'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
-			'Gray' {
-				If ($Raw) {
-					$fcolor = "38;2;229;229;229"; break # Standard, (broken): appears exact same as vscode white
-				} Else {
-					$fcolor = "38;2;192;192;192"; break # taken from powershell.exe terminal colors
+		If ($ForeColor) {
+			switch ($ForeColor) {
+				'Black' { $fcolor = "38;2;0;0;0"; break }
+				'Blue' { $fcolor = "38;2;59;142;234"; break }
+				'Cyan' { $fcolor = "38;2;41;184;219"; break }
+				'DarkBlue' { $fcolor = "38;2;0;0;128"; break }
+				'DarkCyan' { $fcolor = "38;2;0;128;128"; break }
+				'DarkGray' { $fcolor = "38;2;128;128;128"; break }
+				'DarkGreen' { $fcolor = "38;2;0;128;0"; break }
+				'DarkMagenta' { $fcolor = "38;2;188;63;188"; break }
+				'DarkRed' { $fcolor = "38;2;128;0;0"; break }
+				'DarkYellow' { $fcolor = "38;2;229;229;16"; break }
+				'Gray' {
+					If ($Raw) {
+						$fcolor = "38;2;229;229;229"; break # Standard, (broken): appears exact same as vscode white
+					} Else {
+						$fcolor = "38;2;192;192;192"; break # taken from powershell.exe terminal colors
+					}
 				}
-			}
-			'Green' { $fcolor = "38;2;35;209;139"; break }
-			'Magenta' { $fcolor = "38;2;214;112;214"; break }
-			'Red' { $fcolor = "38;2;241;76;76"; break }
-			'White' { $fcolor = "38;2;229;229;229"; break }
-			'Yellow' { $fcolor = "38;2;245;245;67"; break }
-			Default {
-				Write-Warning "Given ForeColor parameter could not be resolved. Reverting to default."
-				#0 	Default 	Returns all attributes to the default state prior to modification
-				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$fcolor = "39"
-			}
-		} # switch
-		switch ($BackColor) {
-			'Black' { $bcolor = "48;2;30;30;30"; break }
-			'Blue' { $bcolor = "48;2;59;142;234"; break }
-			'Cyan' { $bcolor = "48;2;41;184;219"; break }
-			'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
-			'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
-			'DarkGray' { $bcolor = "48;2;128;128;128"; break }
-			'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
-			'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
-			'DarkRed' { $bcolor = "48;2;128;0;0"; break }
-			'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
-			'Gray' {
-				If ($Raw) {
-					$bcolor = "48;2;229;229;229"; break # Standard, (broken): appears exact same as vscode white
-				} Else {
-					$bcolor = "48;2;192;192;192"; break # taken from powershell.exe terminal colors
+				'Green' { $fcolor = "38;2;35;209;139"; break }
+				'Magenta' { $fcolor = "38;2;214;112;214"; break }
+				'Red' { $fcolor = "38;2;241;76;76"; break }
+				'White' { $fcolor = "38;2;229;229;229"; break }
+				'Yellow' { $fcolor = "38;2;245;245;67"; break }
+				Default {
+					Write-Warning "Given ForeColor parameter could not be resolved. Reverting to default."
+					#0 	Default 	Returns all attributes to the default state prior to modification
+					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+					$fcolor = "39"
 				}
-			}
-			'Green' { $bcolor = "48;2;35;209;139"; break }
-			'Magenta' { $bcolor = "48;2;214;112;214"; break }
-			'Red' { $bcolor = "48;2;241;76;76"; break }
-			'White' { $bcolor = "48;2;229;229;229"; break }
-			'Yellow' { $bcolor = "48;2;245;245;67"; break }
-			Default {
-				Write-Warning "Given BackColor parameter could not be resolved. Reverting to default."
-				#0 	Default 	Returns all attributes to the default state prior to modification
-				#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
-				#49 	Background Default 	Applies only the background portion of the defaults (see 0)
-				$bcolor = "49"
-			}
-		} # switch
+			} # switch
+		} # End If ($ForeColor)
+		If ($BackColor) {
+			switch ($BackColor) {
+				'Black' { $bcolor = "48;2;30;30;30"; break }
+				'Blue' { $bcolor = "48;2;59;142;234"; break }
+				'Cyan' { $bcolor = "48;2;41;184;219"; break }
+				'DarkBlue' { $bcolor = "48;2;0;0;128"; break }
+				'DarkCyan' { $bcolor = "48;2;0;128;128"; break }
+				'DarkGray' { $bcolor = "48;2;128;128;128"; break }
+				'DarkGreen' { $bcolor = "48;2;0;128;0"; break }
+				'DarkMagenta' { $bcolor = "48;2;188;63;188"; break }
+				'DarkRed' { $bcolor = "48;2;128;0;0"; break }
+				'DarkYellow' { $bcolor = "48;2;229;229;16"; break }
+				'Gray' {
+					If ($Raw) {
+						$bcolor = "48;2;229;229;229"; break # Standard, (broken): appears exact same as vscode white
+					} Else {
+						$bcolor = "48;2;192;192;192"; break # taken from powershell.exe terminal colors
+					}
+				}
+				'Green' { $bcolor = "48;2;35;209;139"; break }
+				'Magenta' { $bcolor = "48;2;214;112;214"; break }
+				'Red' { $bcolor = "48;2;241;76;76"; break }
+				'White' { $bcolor = "48;2;229;229;229"; break }
+				'Yellow' { $bcolor = "48;2;245;245;67"; break }
+				Default {
+					Write-Warning "Given BackColor parameter could not be resolved. Reverting to default."
+					#0 	Default 	Returns all attributes to the default state prior to modification
+					#39 	Foreground Default 	Applies only the foreground portion of the defaults (see 0)
+					#49 	Background Default 	Applies only the background portion of the defaults (see 0)
+					$bcolor = "49"
+				}
+			} # switch
+		} # End If ($BackColor)
 		If ($ForeColor -And $BackColor) {
 			$VTColorString = $fcolor + ";" + $bcolor
 		} Else {
@@ -696,9 +707,11 @@ Function ConvertTo-VtColorString {
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	$SubFunctionParams = @{}
 	If ($ForeColor) {
+		Write-Verbose "`$ForeColor activated: `"$ForeColor`""
 		$SubFunctionParams += @{ForeColor = $ForeColor}
 	}
 	If ($BackColor) {
+		Write-Verbose "`$BackColor activated: `"$BackColor`""
 		$SubFunctionParams += @{BackColor = $BackColor}
 	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
