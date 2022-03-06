@@ -1607,6 +1607,8 @@ Function Get-LocalPath {
 	Returns the local path of this function.
 	.DESCRIPTION
 	
+	.EXAMPLE
+	Get-LocalPath -Verbose
 	.NOTES
 	Created: 2022-03-06
 	Author: Kerbalnut
@@ -1623,28 +1625,33 @@ Function Get-LocalPath {
 	
 	# Script name (including extension)
 	$ScriptName = $MyInvocation.MyCommand.Name
-	Write-Verbose "Script name: `"$ScriptName`""
-	Write-Verbose `r`n # New line (carriage return and newline (CRLF), `r`n)
+	Write-Verbose "Script name: `n`"$ScriptName`""
 	
 	# Script dir (home directory of script)
 	Write-Verbose "Script home directory:"
-	#https://stackoverflow.com/questions/801967/how-can-i-find-the-source-path-of-an-executing-script/6985381#6985381
-	$ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
-	Write-Verbose "$ScriptDir"
-	$ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Definition # PoSh v2 compatible - thanks to https://stackoverflow.com/questions/5466329/whats-the-best-way-to-determine-the-location-of-the-current-powershell-script
-	Write-Verbose "$ScriptDir"
+	#https://stackoverflow.com/questbions/801967/how-can-i-find-the-source-path-of-an-executing-script/6985381#6985381
+	If ($DebugPreference -ne 'SilentlyContinue') {
+		Write-Debug "'Split-Path `$script:MyInvocation.MyCommand.Path' Generates an error, 'Path' is null. Most likely `$script is null."
+		$ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
+		Write-Verbose "$ScriptDir"
+		
+		Write-Debug "'Split-Path -parent `$MyInvocation.MyCommand.Definition' Actually returns the entire executable script:"
+		$ScriptDir = Split-Path -parent $MyInvocation.MyCommand.Definition # PoSh v2 compatible - thanks to https://stackoverflow.com/questions/5466329/whats-the-best-way-to-determine-the-location-of-the-current-powershell-script
+		Write-Verbose "$ScriptDir"
+	}
 	$ScriptDir = $PSScriptRoot # PoSh v3 compatible - This is an automatic variable set to the current file's/module's directory
-	Write-Verbose "$ScriptDir"
-	Write-Verbose `r`n # New line (carriage return and newline (CRLF), `r`n)
+	Write-Verbose "`"$ScriptDir`""
 	
-	# Script path (full file path & name & extension of currently running script)
-	$ScriptPath = $MyInvocation.MyCommand.Path
-	Write-Verbose "Script full path:"
-	Write-Verbose "$ScriptPath"
-	Write-Verbose `r`n # New line (carriage return and newline (CRLF), `r`n)
+	If ($DebugPreference -ne 'SilentlyContinue') {
+		Write-Debug "'`$MyInvocation.MyCommand.Path' Returns null:"
+		# Script path (full file path & name & extension of currently running script)
+		$ScriptPath = $MyInvocation.MyCommand.Path
+		Write-Verbose "Script full path:"
+		Write-Verbose "`"$ScriptPath`""
+	}
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	Return
+	Return $ScriptDir
 } # End of Get-LocalPath function.
 #-----------------------------------------------------------------------------------------------------------------------
 
