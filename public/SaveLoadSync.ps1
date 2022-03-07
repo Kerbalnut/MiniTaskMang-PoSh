@@ -1552,7 +1552,7 @@ Function Set-DefaultMTMProjectPath {
 	#Requires -Version 3
 	[CmdletBinding()]
 	Param(
-		[Parameter(Mandatory = $True, Position = 0,
+		[Parameter(Mandatory = $False, Position = 0,
 		           ValueFromPipeline = $True, 
 		           ValueFromPipelineByPropertyName = $True)]
 		[Alias('Path')]
@@ -1570,12 +1570,36 @@ Function Set-DefaultMTMProjectPath {
 	
 	Write-Verbose "Check that project path exists."
 	
-	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	$DefaultProjectLocation = "Projects\Default Project"
 	
+	If (!($ProjectPath)) {
+		$ProjectPath = Split-Path -Path (Get-LocalPath) -Parent
+		$ProjectPath = Join-Path -Path $ProjectPath -ChildPath $DefaultProjectLocation
+		Write-Warning "No -ProjectPath parameter provided. Default path selected: `"$ProjectPath`""
+		Write-Debug "No -ProjectPath parameter provided. Default path selected: `"$ProjectPath`""
+		Try {
+			$null = MkDir $ProjectPath
+		} Catch {
+			Write-Error "Problem with creating default Project folder: `"$ProjectPath`""
+			Throw "Problem with creating default Project folder: `"$ProjectPath`""
+		}
+		Write-Verbose "New default -ProjectPath created: `"$ProjectPath`""
+	}
+	
+	If (!(Test-Path -Path $ProjectPath)) {
+		Write-Warning "Given -ProjectPath location does not exist: `"$ProjectPath`""
+		Write-Error "Given -ProjectPath location does not exist: `"$ProjectPath`""
+		Throw "Given -ProjectPath location does not exist: `"$ProjectPath`""
+	}
+	
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	Write-Verbose "Process module template path:"
 	
 	Write-Verbose "Remove _Template keyword: Separate extension, remove keyword, concat extension."
+	
+	Write-Verbose "Separate Extension:"
+	
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
@@ -1595,7 +1619,7 @@ Function Set-DefaultMTMProjectPath {
 	
 	
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	Return
+	Return $a
 } # End of Set-DefaultMTMProjectPath function.
 Set-Alias -Name 'Set-MTMPath' -Value 'Set-DefaultMTMProjectPath'
 #-----------------------------------------------------------------------------------------------------------------------
