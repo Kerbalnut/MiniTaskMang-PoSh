@@ -66,19 +66,23 @@ Set-Alias -Name 'Get-DefaultStatus' -Value 'Get-DefaultStatuses'
 Function Get-AllPowerShellColors {
 	<#
 	.SYNOPSIS
-	Returns all available PowerShell colors.
+	Returns a list of all available PowerShell colors.
 	.DESCRIPTION
-	Prints complete list of every available PowerShell color. When used with switches like -List and -Grid, this function also produces Foreground and Background examples. The -VtColors switch enables use of Virtual Terminal color codes.
+	Returns list of every available PowerShell color by default. When used with other switches, this function also produces Foreground and Background examples. 
+	
+	The -List switch prints output directly to the terminal using Write-Host, and -Grid produces an array object output that can be formatted as a table. 
+	
+	The -VtColors switch enables use of Virtual Terminal color codes, which greatly expands the range of colors available for use. To find out if the type of PowerShell interface in use is compatible with Virtual Terminal colors, use the -ShowHostInfo switch.
 	.PARAMETER List
 	Prints a complete list of different ForeGround and BackGround color examples. Useful for choosing multiple fore/back color pairs.
 	
-	Not compatible with -ColorGrid parameter.
+	Not compatible with -Grid parameter.
 	.PARAMETER AddColorLabels
 	Adds non-color-formatted labels to -ColorList output.
 	
 	For a standard-width PowerShell terminal, this extra string length will overflow each line of printed output, so usually requires a wider than normal terminal width for formatted output.
 	.PARAMETER Grid
-	Returns an array object with details about color options, and few color examples.
+	Returns an array object with details about color options, and a few color examples.
 	
 	Not compatible with -ColorList parameter.
 	.PARAMETER VtColors
@@ -91,8 +95,10 @@ Function Get-AllPowerShellColors {
 	Get-AllPowerShellColors -Alphabetic:$False
 	.PARAMETER Quiet
 	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce host/terminal output. Pipeline output will still be produced.
-	.PARAMETER HostDefaults
-	Provides a curated list of some details of the host console/terminal executing the PowerShell commands, along with default Foreground and Background info. See the `Get-Host` command for more info.
+	.PARAMETER ShowHostInfo
+	Provides a curated list of some details of the host console/terminal executing the PowerShell commands, including default Foreground and Background colors, and if the host supports Virtual Terminal colors. 
+	
+	See the `Get-Host` command and $PSVersionTable built-in variable for more of this type of info.
 	.EXAMPLE
 	Get-AllPowerShellColors
 	
@@ -100,27 +106,26 @@ Function Get-AllPowerShellColors {
 	.EXAMPLE
 	(Get-AllPowerShellColors -Quiet).Count
 	
-	Returns number of available PowerShell colors. (Standard 16)
+	Returns number of available PowerShell colors. (Standard is 16)
 	.EXAMPLE
-	[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
-	
-	Returns list of available named PowerShell colors, in alphabetical order.
-	.EXAMPLE
-	Get-AllPowerShellColors -Quiet -Alphabetic:$False
+	Get-AllPowerShellColors -Alphabetic:$False
 	
 	Do not produce alphabetic output. This switch is on by default, so this syntax is required to explicitly turn it off.
+	
+	Another way to explicitly sort output alphabetically, but is not necessary:
+	PS\>[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
 	.EXAMPLE
 	Get-AllPowerShellColors -List
 	
 	Returns an example of every color Foreground + Background pair, in a printed output list using Write-Host.
 	
 	Alias for:
-	Get-AllPowerShellColors -ColorList
+	PS\>Get-AllPowerShellColors -ColorList
 	
 	Use with the -AddColorLabels switch to include a default-colored tag with each line.
 	
 	E.g.
-	Get-AllPowerShellColors -List -AddColorLabels
+	PS\>Get-AllPowerShellColors -List -AddColorLabels
 	
 	For a standard powershell.exe terminal width (standard 120), each line of this output will end perfectly at the line break point, creating a grid. (When used with standard 16 colors.)
 	But when this command is used with the -AddColorLabels switch, each line will additionally print with the color name in the default color scheme, causing overflow. A resized or non-default width powershell interface will change this.
@@ -130,49 +135,43 @@ Function Get-AllPowerShellColors {
 	Prints to console a list of every powershell color applied in every variety of Foreground color and Background color combination. Traditionally, there are 16 available colors, so this switch generates a nice-looking grid on standard-width PowerShell terminal.
 	
 	Alias for:
-	Get-AllPowerShellColors -ColorGrid
-	.EXAMPLE
-	Get-AllPowerShellColors -ColorGrid -BlackAndWhite
+	PS\>Get-AllPowerShellColors -ColorGrid
 	.EXAMPLE
 	Get-AllPowerShellColors -VtColors
 	.EXAMPLE
-	Get-AllPowerShellColors -VtColors -ColorGrid
-	.EXAMPLE
-	Get-AllPowerShellColors -VtColors -List | Format-Table
-	.EXAMPLE
 	Get-AllPowerShellColors
-	Get-AllPowerShellColors -BlackAndWhite
 	Get-AllPowerShellColors -Quiet
-	Get-AllPowerShellColors -BlackAndWhite -Quiet
 	Get-AllPowerShellColors -List
 	Get-AllPowerShellColors -List -AddColorLabels
 	Get-AllPowerShellColors -Grid
 	Get-AllPowerShellColors -VtColors
-	Get-AllPowerShellColors -List -BlackAndWhite
-	Get-AllPowerShellColors -Grid -BlackAndWhite
-	Get-AllPowerShellColors -VtColors -BlackAndWhite
 	Get-AllPowerShellColors -List -Quiet
 	Get-AllPowerShellColors -Grid -Quiet
 	Get-AllPowerShellColors -VtColors -Quiet
+	Get-AllPowerShellColors -BlackAndWhite
+	Get-AllPowerShellColors -BlackAndWhite -Quiet
+	Get-AllPowerShellColors -List -BlackAndWhite
+	Get-AllPowerShellColors -Grid -BlackAndWhite
+	Get-AllPowerShellColors -VtColors -BlackAndWhite
 	Get-AllPowerShellColors -List -BlackAndWhite -Quiet
 	Get-AllPowerShellColors -Grid -BlackAndWhite -Quiet
 	Get-AllPowerShellColors -VtColors -BlackAndWhite -Quiet
 	Get-AllPowerShellColors -List -VtColors
 	Get-AllPowerShellColors -Grid -VtColors
-	Get-AllPowerShellColors -List -VtColors -BlackAndWhite
-	Get-AllPowerShellColors -Grid -VtColors -BlackAndWhite
 	Get-AllPowerShellColors -List -VtColors -Quiet
 	Get-AllPowerShellColors -Grid -VtColors -Quiet
+	Get-AllPowerShellColors -List -VtColors -BlackAndWhite
+	Get-AllPowerShellColors -Grid -VtColors -BlackAndWhite
 	Get-AllPowerShellColors -List -VtColors -BlackAndWhite -Quiet
 	Get-AllPowerShellColors -Grid -VtColors -BlackAndWhite -Quiet
-	Get-AllPowerShellColors -HostDefaults
+	Get-AllPowerShellColors -ShowHostInfo
 	.NOTES
 	.LINK
 	https://stackoverflow.com/questions/20541456/list-of-all-colors-available-for-powershell
 	#>
 	[Alias("Get-AllColors","Get-Colors","Get-ColorsList")]
 	#Requires -Version 3
-	[CmdletBinding(DefaultParameterSetName = "Default")]
+	[CmdletBinding(DefaultParameterSetName = "ColorList")]
 	Param(
 		[Parameter(ParameterSetName = "ColorList")]
 		[Alias('ColorList','l','cl')]
@@ -188,21 +187,37 @@ Function Get-AllPowerShellColors {
 		#[Parameter(ParameterSetName = "ColorCompare")]
 		#[Switch]$ConsoleColorComparison,
 		
-		[Parameter(ParameterSetName = "HostDefaults")]
-		[Alias('Defaults','ConsoleDefaults','InterfaceDefaults','TerminalDefaults')]
-		[Switch]$HostDefaults,
-		
+		[Parameter(ParameterSetName = "Default")]
+		[Parameter(ParameterSetName = "ColorList")]
+		[Parameter(ParameterSetName = "ColorGrid")]
 		[Alias('vt')]
 		[Switch]$VtColors,
 		
+		[Parameter(ParameterSetName = "Default")]
+		[Parameter(ParameterSetName = "ColorList")]
+		[Parameter(ParameterSetName = "ColorGrid")]
 		[Alias('bw','bnw','black','white')]
 		[Switch]$BlackAndWhite,
 		
+		[Parameter(ParameterSetName = "Default")]
+		[Parameter(ParameterSetName = "ColorList")]
+		[Parameter(ParameterSetName = "ColorGrid")]
 		[Alias('q')]
 		[Switch]$Quiet,
 		
-		[Switch]$Alphabetic = $True
+		[Parameter(ParameterSetName = "Default")]
+		[Parameter(ParameterSetName = "ColorList")]
+		[Parameter(ParameterSetName = "ColorGrid")]
+		[Switch]$Alphabetic = $True,
+		
+		[Parameter(ParameterSetName = "ShowHostInfo")]
+		[Alias('ShowHostDefaults','Defaults','HostDefaults','ConsoleDefaults','InterfaceDefaults','TerminalDefaults')]
+		[Switch]$ShowHostInfo
+		
 	)
+	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	If ($List) {$ColorList = $True}
+	If ($Grid) {$ColorGrid = $True}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	If (!($Alphabetic)) {
 		# Standard output (list of all color names):
@@ -219,12 +234,12 @@ Function Get-AllPowerShellColors {
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	$SupportsVirtualTerminal = (Get-Host).UI.SupportsVirtualTerminal
 	If ($VtColors -And (!($SupportsVirtualTerminal)) ) {
-		Write-Warning 'This host does not support Virtual Terminal colors. Run `Get-AllPowerShellColors -HostDefaults` for more info. Issues may occur when using the -VtColors switch on this host. See `Get-Help Get-AllPowerShellColors -Full` for more info on the -VtColors and -HostDefaults switches.'
+		Write-Warning 'This host does not support Virtual Terminal colors. Run `Get-AllPowerShellColors -ShowHostInfo` for more info. Issues may occur when using the -VtColors switch on this host. See `Get-Help Get-AllPowerShellColors -Full` for more info on the -VtColors and -ShowHostInfo switches.'
 	}
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	$HostInterfaceName = (Get-Host).Name
 	#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	# Begin If/Else tree for returning/printing output, based on input switches: ColorList, ColorGrid, HostDefaults, VtColors, or none of the above.
+	# Begin If/Else tree for returning/printing output, based on input switches: ColorList, ColorGrid, ShowHostInfo, VtColors, or none of the above.
 	If ($ColorList -And !($Quiet)) {
 		# Print list to terminal
 		If (!($VtColors)) {
@@ -496,7 +511,7 @@ Function Get-AllPowerShellColors {
 		} # End If/Else ($Quiet)
 		#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 		# End ElseIf $ColorGrid
-	} ElseIf ($HostDefaults) { # End ElseIf ($ColorGrid)
+	} ElseIf ($ShowHostInfo) { # End ElseIf ($ColorGrid)
 		$HostInfo = [PSCustomObject]@{
 			Name = (Get-Host).Name
 			WindowTitle = (Get-Host).UI.RawUI.WindowTitle
@@ -510,7 +525,7 @@ Function Get-AllPowerShellColors {
 			BackgroundColor = (Get-Host).UI.RawUI.BackgroundColor
 		}
 		Return $HostInfo
-	} ElseIf ($VtColors) { # End ElseIf ($HostDefaults)
+	} ElseIf ($VtColors) { # End ElseIf ($ShowHostInfo)
 		# No other -List or -Grid param specified, but -VtColors is.
 		
 		$VtColorCodeArray = @()
