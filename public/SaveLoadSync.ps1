@@ -66,9 +66,9 @@ Set-Alias -Name 'Get-DefaultStatus' -Value 'Get-DefaultStatuses'
 Function Get-AllPowerShellColors {
 	<#
 	.SYNOPSIS
-	Returns available PowerShell colors.
+	Returns all available PowerShell colors.
 	.DESCRIPTION
-	Prints complete list of every available PowerShell color with Foreground and Background examples.
+	Prints complete list of every available PowerShell color. When used with switches like -List and -Grid, this function also produces Foreground and Background examples. The -VtColors switch enables use of Virtual Terminal color codes.
 	.PARAMETER List
 	Prints a complete list of different ForeGround and BackGround color examples. Useful for choosing multiple fore/back color pairs.
 	
@@ -83,6 +83,12 @@ Function Get-AllPowerShellColors {
 	Not compatible with -ColorList parameter.
 	.PARAMETER VtColors
 	Show addiitional options for Virtual Terminal colors.
+	
+	For more info on VT colors:
+	https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#text-formatting
+	.PARAMETER Alphabetic
+	This switch is on by default, so this syntax is required to explicitly turn it off:
+	Get-AllPowerShellColors -Alphabetic:$False
 	.PARAMETER Quiet
 	Returns complete list of color names only. No other Write-Host output is printed to console. Overrides other switches that produce host/terminal output. Pipeline output will still be produced.
 	.PARAMETER HostDefaults
@@ -90,11 +96,11 @@ Function Get-AllPowerShellColors {
 	.EXAMPLE
 	Get-AllPowerShellColors
 	
-	Lists available PowerShell colors.
+	Prints list of available PowerShell colors.
 	.EXAMPLE
 	(Get-AllPowerShellColors -Quiet).Count
 	
-	Returns number of available PowerShell colors.
+	Returns number of available PowerShell colors. (Standard 16)
 	.EXAMPLE
 	[string[]](Get-AllPowerShellColors -Quiet) | Sort-Object
 	
@@ -106,11 +112,18 @@ Function Get-AllPowerShellColors {
 	.EXAMPLE
 	Get-AllPowerShellColors -List
 	
+	Returns an example of every color Foreground + Background pair, in a printed output list using Write-Host.
+	
 	Alias for:
 	Get-AllPowerShellColors -ColorList
 	
-	.EXAMPLE
+	Use with the -AddColorLabels switch to include a default-colored tag with each line.
+	
+	E.g.
 	Get-AllPowerShellColors -List -AddColorLabels
+	
+	For a standard powershell.exe terminal width (standard 120), each line of this output will end perfectly at the line break point, creating a grid. (When used with standard 16 colors.)
+	But when this command is used with the -AddColorLabels switch, each line will additionally print with the color name in the default color scheme, causing overflow. A resized or non-default width powershell interface will change this.
 	.EXAMPLE
 	Get-AllPowerShellColors -Grid
 	
@@ -132,6 +145,7 @@ Function Get-AllPowerShellColors {
 	Get-AllPowerShellColors -Quiet
 	Get-AllPowerShellColors -BlackAndWhite -Quiet
 	Get-AllPowerShellColors -List
+	Get-AllPowerShellColors -List -AddColorLabels
 	Get-AllPowerShellColors -Grid
 	Get-AllPowerShellColors -VtColors
 	Get-AllPowerShellColors -List -BlackAndWhite
@@ -161,15 +175,15 @@ Function Get-AllPowerShellColors {
 	[CmdletBinding(DefaultParameterSetName = "Default")]
 	Param(
 		[Parameter(ParameterSetName = "ColorList")]
-		[Alias('List','l','cl')]
-		[Switch]$ColorList,
+		[Alias('ColorList','l','cl')]
+		[Switch]$List,
 		
 		[Parameter(ParameterSetName = "ColorList")]
 		[Switch]$AddColorLabels,
 		
 		[Parameter(ParameterSetName = "ColorGrid")]
-		[Alias('Grid','g','cg','ShowExamples','show','examples')]
-		[Switch]$ColorGrid,
+		[Alias('ColorGrid','g','cg','ShowExamples','show','examples')]
+		[Switch]$Grid,
 		
 		#[Parameter(ParameterSetName = "ColorCompare")]
 		#[Switch]$ConsoleColorComparison,
@@ -2430,6 +2444,7 @@ Function New-TaskTrackingInitiativeTEST {
 		           HelpMessage = "Path to ...", 
 		           ParameterSetName = "Path")]
 		[ValidateNotNullOrEmpty()]
+		[ValidateSet("default", "powershell.exe", "Code.exe", "VSCodium.exe")]
 		[Alias('ProjectPath','p')]
 		[String]$Path
 		
